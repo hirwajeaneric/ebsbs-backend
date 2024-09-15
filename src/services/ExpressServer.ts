@@ -2,6 +2,7 @@ import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import ErrorHandlerMiddleware from '../middlewares/ErrorHandler';
 import userRouter from '../routes/user.routes';
+import bloodBankRouter from '../routes/bloodBank.routes';
 
 export default async (app: Application) => {
     app.use(express.json());
@@ -22,6 +23,7 @@ export default async (app: Application) => {
     });
 
     app.use('/api/v1/auth', userRouter);
+    app.use('/api/v1/bloodbanks', bloodBankRouter);
 
     app.use(ErrorHandlerMiddleware);
 
