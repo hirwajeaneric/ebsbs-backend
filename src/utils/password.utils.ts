@@ -32,17 +32,6 @@ export const GeneratePassword = async (password: string, salt: number) => {
 };
 
 /**
- * 
- * @param enteredPassword the password to be checked
- * @param savedPassword the already existing password from the database
- * @param salt the salt that was used to generate the password
- * @returns true or false if the passwords match.
- */
-export const ValidatePassword = async (enteredPassword: string, savedPassword: string, salt: number) => {
-    return await GeneratePassword(enteredPassword, salt) === savedPassword;
-};
-
-/**
  * Generates a signature token to be used to let a user logged in or do a specific activity once logged in.
  * @param payload an object that contains some information about the logged in user.
  * @returns signature string of text (a jwt token)

@@ -56,7 +56,6 @@ export const validateUserSignUp = [
         .withMessage('Password must be at least 6 characters long')
         .isStrongPassword()
         .withMessage('Password must be at least 6 characters with an Upper case character, lower case character, symbol and digit.'),
-    body('role').isString().withMessage('Role must be a string'),
     handleValidationErrors
 ];
 

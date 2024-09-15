@@ -2,8 +2,9 @@ import { Request, Response, NextFunction } from "express";
 
 import asyncWrapper from '../middlewares/AsyncWrapper';
 import prisma from "../db/client";
-import { GeneratePassword, GenerateToken, isTokenValid, ValidatePassword, ValidateToken } from "../utils/password.utils";
+import { GeneratePassword, GenerateToken, isTokenValid, ValidateToken } from "../utils/password.utils";
 import { sendEmail } from "../utils/notification.utils";
+import bcrypt from "bcryptjs";
 
 export const test = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
     res.send('Hello World');
@@ -17,11 +18,12 @@ export const bloodBankSignIn = asyncWrapper(async (req: Request, res: Response, 
         existingUser = await prisma.bloodBankRecorder.findFirst({ where: { email: req.body.email } });
     }
     if (!existingUser) {
-        return res.status(404).json({ message: 'Invalid credentials' });
+        console.log("Hello")
+        return res.status(404).json({ error: 'Invalid credentials' });
     }
-    const isPasswordValid = await ValidatePassword(req.body.password, existingUser.password, 10);
+    const isPasswordValid = await bcrypt.compare(req.body.password, existingUser.password);
     if (!isPasswordValid) {
-        return res.status(401).json({ message: 'Invalid email or password' });
+        return res.status(401).json({ error: 'Invalid email or password' });
     }
     const token = await GenerateToken({
         _id: existingUser.id,
@@ -56,7 +58,7 @@ export const hospitalSignIn = asyncWrapper(async (req: Request, res: Response, n
     if (!existingUser) {
         return res.status(404).json({ message: 'Invalid credentials' });
     }
-    const isPasswordValid = await ValidatePassword(req.body.password, existingUser.password, 10);
+    const isPasswordValid = await bcrypt.compare(req.body.password, existingUser.password);
     if (!isPasswordValid) {
         return res.status(401).json({ message: 'Invalid email or password' });
     }
@@ -90,7 +92,7 @@ export const adminSignUp = asyncWrapper(async (req: Request, res: Response, next
         }
     });
     if (existingUser) {
-        return res.status(409).json({ message: 'User already exists' });
+        return res.status(409).json({ error: 'User already exists' });
     }
     const hashedPassword = await GeneratePassword(req.body.password, 10);
     const user = await prisma.admin.create({
@@ -124,7 +126,8 @@ export const hospitalSignUp = asyncWrapper(async (req: Request, res: Response, n
             password: hashedPassword,
         }
     });
-    res.status(201).json({ message: 'Account created successfully', user });
+
+    res.status(201).json({ message: 'Account created successfully' });
 });
 
 export const addNewUser = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
@@ -159,62 +162,74 @@ export const addNewUser = asyncWrapper(async (req: Request, res: Response, next:
             return res.status(409).json({ message: 'User account already exists' });
         }
         const hashedPassword = await GeneratePassword(req.body.password, 10);
-        user = await prisma.hospitalAdmin.create({
+        user = await prisma.bloodBankRecorder.create({
             data: {
                 firstName: req.body.firstName,
                 lastName: req.body.lastName,
                 email: req.body.email,
                 phone: req.body.phone,
                 password: hashedPassword,
+                bloodBankId: req.body.bloodBankId
             }
         });
     }
 
-    var emailBody = "";
+    var emailBody = ``;
     if (user.role === "Hospital Worker") {
         emailBody = `Dear ${user.firstName} ${user.lastName},\n\nYour account has been created successfully. \n\nHere are your account credentials: \n\nEmail: ${user.email}\nPassword: ${req.body.password}\n\nAccess link: ${process.env.CLIENT_URL}/hauth/${req.body.hospitalId}/sign-in\n\nRemember to reset your password on login. \n\nNow you can log in.\n\nBest Regards,\nAdmin`;
     } else if (user.role === "Blood Bank Recorder") {
         emailBody = `Dear ${user.firstName} ${user.lastName},\n\nYour account has been created successfully. \n\nHere are your account credentials: \n\nEmail: ${user.email}\nPassword: ${req.body.password}\n\nAccess link: ${process.env.CLIENT_URL}/bbauth/sign-in\n\nRemember to reset your password on login. \n\nNow you can log in.\n\nBest Regards,\nAdmin`;
     }
 
-    if (user) {
-        await sendEmail(req.body.email, 'Your account credentials', emailBody);
-    }
+    await sendEmail(req.body.email, 'Your account credentials', emailBody);
 
     res.status(201).json({ message: 'Account created successfully' });
 });
 
 export const listUsers = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
-    const hospitalAdmins = await prisma.hospitalAdmin.findMany();
-    const hospitalWorkers = await prisma.hospitalWorker.findMany();
-    const bloodBankRecorders = await prisma.bloodBankRecorder.findMany();
+    const hospitalAdmins = await prisma.hospitalAdmin.findMany({ select: { email: true, firstName: true, lastName: true, role: true, id: true, accountStatus: true } });
+    const hospitalWorkers = await prisma.hospitalWorker.findMany({ select: { email: true, firstName: true, lastName: true, role: true, id: true, accountStatus: true } });
+    const bloodBankRecorders = await prisma.bloodBankRecorder.findMany({ select: { email: true, firstName: true, lastName: true, role: true, id: true, accountStatus: true } });
     const users = [...hospitalAdmins, ...hospitalWorkers, ...bloodBankRecorders];
+    
     res.status(200).json({ users });
 })
 
 export const listHospitalEmployees = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
     const hospitalWorkers = await prisma.hospitalWorker.findMany({
         where: {
-            hospitalId: req.params.hospitalId
+            hospitalId: req.query.hospitalId as string
         }
     });
     res.status(200).json({ hospitalWorkers });
 })
 
 export const listBloodBankEmployees = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
-    const bloodBankRecorders = await prisma.bloodBankRecorder.findMany();
+    const bloodBankRecorders = await prisma.bloodBankRecorder.findMany({
+        where: {
+            bloodBankId: req.query.bloodBankId as string
+        }
+    });
     res.status(200).json({ bloodBankRecorders });
 })
 
 export const forgotPassword = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
-    const user = await prisma.hospitalAdmin.findFirst({
-        where: {
-            email: req.body.email
-        }
-    });
+    var user: any = {};
+    user = await prisma.hospitalAdmin.findFirst({ where: { email: req.body.email } });
+    if (!user) {
+        user = await prisma.admin.findFirst({ where: { email: req.body.email } });
+    }
+    if (!user) {
+        user = await prisma.hospitalWorker.findFirst({ where: { email: req.body.email } });
+    }
+    if (!user) {
+        user = await prisma.bloodBankRecorder.findFirst({ where: { email: req.body.email } });
+    }
+
     if (!user) {
         return res.status(404).json({ message: 'User with this email not found' });
     }
+
     const token = await GenerateToken({
         _id: user.id,
         email: user.email,
@@ -248,36 +263,58 @@ export const forgotPassword = asyncWrapper(async (req: Request, res: Response, n
 
 export const resetPassword = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
     const isTokenValid = await ValidateToken(req);
+    console.log(req.user);
+    console.log(isTokenValid);
     if (!isTokenValid) {
         return res.status(401).json({ message: 'Invalid or expired token' });
     }
     var foundUser: any = {};
 
-    if (req.body.role === "Hospital Worker") {
+    if (req.user?.role === "Hospital Worker") {
         foundUser = await prisma.hospitalWorker.findFirst({ where: { id: req.user?._id } });
         foundUser.password = await GeneratePassword(req.body.password, 10);
-        await foundUser.save();
+        await prisma.bloodBankRecorder.update({
+            where: { id: req.user?._id },
+            data: {
+                password: foundUser.password
+            }
+        });
         await prisma.token.deleteMany({ where: { user: req.user?._id } });
         await sendEmail(foundUser.email, 'Password Reset', `Your password has been reset.`);
         res.status(200).json({ message: 'Password reset successfully' });
-    } else if (req.body.role === "Blood Bank Recorder") {
+    } else if (req.user?.role === "Blood Bank Recorder") {
         foundUser = await prisma.bloodBankRecorder.findFirst({ where: { id: req.user?._id } });
         foundUser.password = await GeneratePassword(req.body.password, 10);
-        await foundUser.save();
+        await prisma.bloodBankRecorder.update({
+            where: { id: req.user?._id },
+            data: {
+                password: foundUser.password
+            }
+        });
         await prisma.token.deleteMany({ where: { user: req.user?._id } });
         await sendEmail(foundUser.email, 'Password Reset', `Your password has been reset.`);
         res.status(200).json({ message: 'Password reset successfully' });
-    } else if (req.body.role === "Hospital Admin") {
+    } else if (req.user?.role === "Hospital Admin") {
         foundUser = await prisma.hospitalAdmin.findFirst({ where: { id: req.user?._id } });
         foundUser.password = await GeneratePassword(req.body.password, 10);
-        await foundUser.save();
+        await prisma.bloodBankRecorder.update({
+            where: { id: req.user?._id },
+            data: {
+                password: foundUser.password
+            }
+        });
         await prisma.token.deleteMany({ where: { user: req.user?._id } });
         await sendEmail(foundUser.email, 'Password Reset', `Your password has been reset.`);
         res.status(200).json({ message: 'Password reset successfully' });
-    } else if (req.body.role === "Blood Bank Admin") {
+    } else if (req.user?.role === "Blood Bank Admin") {
         foundUser = await prisma.admin.findFirst({ where: { id: req.user?._id } });
         foundUser.password = await GeneratePassword(req.body.password, 10);
-        await foundUser.save();
+        await prisma.bloodBankRecorder.update({
+            where: { id: req.user?._id },
+            data: {
+                password: foundUser.password
+            }
+        });
         await prisma.token.deleteMany({ where: { user: req.user?._id } });
         await sendEmail(foundUser.email, 'Password Reset', `Your password has been reset.`);
         res.status(200).json({ message: 'Password reset successfully' });
@@ -290,62 +327,105 @@ export const resetPassword = asyncWrapper(async (req: Request, res: Response, ne
 
 export const updateAccount = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
     var updatedUser: any = {};
+    var toBeUpdated: any = {};
 
-    if (req.body.role === "Hospital Worker") {
+    if (req.query.role === "Hospital Worker") {
+        toBeUpdated = await prisma.hospitalWorker.findUnique({
+            where: { id: req.query.id as string }
+        })
+        if (!toBeUpdated) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        toBeUpdated.firstName = req.body.firstName || toBeUpdated.firstName;
+        toBeUpdated.lastName = req.body.lastName || toBeUpdated.lastName;
+        toBeUpdated.phone = req.body.phone || toBeUpdated.phone;
+        toBeUpdated.email = req.body.email || toBeUpdated.email;
+        toBeUpdated.accountStatus = req.body.accountStatus || toBeUpdated.accountStatus;
+        
+        delete toBeUpdated.id;
+
         updatedUser = await prisma.hospitalWorker.update({
-            where: { id: req.body.id },
-            data: {
-                firstName: req.body.firstName,
-                lastName: req.body.lastName,
-                phone: req.body.phone,
-                email: req.body.email,
-                accountStatus: req.body.accountStatus
-            }
+            where: { id: req.query.id as string },
+            data: toBeUpdated
         })
     }
 
-    if (req.body.role === "Blood Bank Recorder") {
+    if (req.query.role === "Blood Bank Recorder") {
+        toBeUpdated = await prisma.bloodBankRecorder.findUnique({
+            where: { id: req.query.id as string }
+        })
+        if (!toBeUpdated) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        toBeUpdated.firstName = req.body.firstName || toBeUpdated.firstName;
+        toBeUpdated.lastName = req.body.lastName || toBeUpdated.lastName;
+        toBeUpdated.phone = req.body.phone || toBeUpdated.phone;
+        toBeUpdated.email = req.body.email || toBeUpdated.email;
+        toBeUpdated.accountStatus = req.body.accountStatus || toBeUpdated.accountStatus;
+        
+        delete toBeUpdated.id;
+
         updatedUser = await prisma.bloodBankRecorder.update({
-            where: { id: req.body.id },
-            data: {
-                firstName: req.body.firstName,
-                lastName: req.body.lastName,
-                phone: req.body.phone,
-                email: req.body.email,
-                accountStatus: req.body.accountStatus
-            }
+            where: { id: req.query.id as string },
+            data: toBeUpdated
         })
     }
 
-    if (req.body.role === "Hospital Admin") {
+    if (req.query.role === "Hospital Admin") {
+        toBeUpdated = await prisma.hospitalAdmin.findUnique({
+            where: { id: req.query.id as string }
+        })
+        if (!toBeUpdated) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        toBeUpdated.firstName = req.body.firstName || toBeUpdated.firstName;
+        toBeUpdated.lastName = req.body.lastName || toBeUpdated.lastName;
+        toBeUpdated.phone = req.body.phone || toBeUpdated.phone;
+        toBeUpdated.email = req.body.email || toBeUpdated.email;
+        toBeUpdated.accountStatus = req.body.accountStatus || toBeUpdated.accountStatus;
+        
+        delete toBeUpdated.id;
+
         updatedUser = await prisma.hospitalAdmin.update({
-            where: { id: req.body.id },
-            data: {
-                firstName: req.body.firstName,
-                lastName: req.body.lastName,
-                phone: req.body.phone,
-                email: req.body.email,
-                accountStatus: req.body.accountStatus
-            }
+            where: { id: req.query.id as string },
+            data: toBeUpdated
         })
     }
 
-    if (req.body.role === "Blood Bank Admin") {
+    if (req.query.role === "Blood Bank Admin") {
+        toBeUpdated = await prisma.admin.findUnique({
+            where: { id: req.query.id as string }
+        })
+        if (!toBeUpdated) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        toBeUpdated.firstName = req.body.firstName || toBeUpdated.firstName;
+        toBeUpdated.lastName = req.body.lastName || toBeUpdated.lastName;
+        toBeUpdated.phone = req.body.phone || toBeUpdated.phone;
+        toBeUpdated.email = req.body.email || toBeUpdated.email;
+        toBeUpdated.accountStatus = req.body.accountStatus || toBeUpdated.accountStatus;
+        
+        delete toBeUpdated.id;
+
         updatedUser = await prisma.admin.update({
-            where: { id: req.body.id },
-            data: {
-                firstName: req.body.firstName,
-                lastName: req.body.lastName,
-                phone: req.body.phone,
-                email: req.body.email,
-                accountStatus: req.body.accountStatus
-            }
+            where: { id: req.query.id as string },
+            data: toBeUpdated
         })
     }
 
     res.status(200).json({
-        message: 'Account updated successfully',
-        user: updatedUser
+        message: 'Account Updated successfully',
+        user: {
+            firstName: updatedUser.firstName,
+            lastName: updatedUser.lastName,
+            email: updatedUser.email,
+            phone: updatedUser.phone,
+            accountStatus: updatedUser.accountStatus,
+            role: updatedUser.role,
+            id: updatedUser.id,
+            hospitalId: updatedUser.hospitalId,
+        }
     });
 })
 
