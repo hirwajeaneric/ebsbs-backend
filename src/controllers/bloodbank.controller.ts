@@ -38,22 +38,54 @@ export const updateBloodBank = asyncWrapper(async (req: Request, res: Response, 
         province: req.body.province || existingBloodBankData.province,
         town: req.body.town || existingBloodBankData.town,
         POBox: req.body.POBox || existingBloodBankData.POBox,
+
+        // Update Rh positive blood types
         rhP_O: req.body.rhP_O || existingBloodBankData.rhP_O,
         rhP_AB: req.body.rhP_AB || existingBloodBankData.rhP_AB,
         rhP_B: req.body.rhP_B || existingBloodBankData.rhP_B,
         rhP_A: req.body.rhP_A || existingBloodBankData.rhP_A,
+
+        // Update Rh negative blood types
         rhN_O: req.body.rhN_O || existingBloodBankData.rhN_O,
         rhN_AB: req.body.rhN_AB || existingBloodBankData.rhN_AB,
         rhN_B: req.body.rhN_B || existingBloodBankData.rhN_B,
         rhN_A: req.body.rhN_A || existingBloodBankData.rhN_A,
-        plasma_O_P: req.body.plasma_O_P || existingBloodBankData.plasma_O_P,
-        plasma_O_N: req.body.plasma_O_N || existingBloodBankData.plasma_O_N,
-        plasma_AB_P: req.body.plasma_AB_P || existingBloodBankData.plasma_AB_P,
-        plasma_AB_N: req.body.plasma_AB_N || existingBloodBankData.plasma_AB_N,
-        plasma_B_P: req.body.plasma_B_P || existingBloodBankData.plasma_B_P,
-        plasma_B_N: req.body.plasma_B_N || existingBloodBankData.plasma_B_N,
-        plasma_A_P: req.body.plasma_A_P || existingBloodBankData.plasma_A_P,
-        plasma_A_N: req.body.plasma_A_N || existingBloodBankData.plasma_A_N
+
+        // Update Plasma Rh positive types
+        plasmaRhP_O: req.body.plasmaRhP_O || existingBloodBankData.plasmaRhP_O,
+        plasmaRhP_AB: req.body.plasmaRhP_AB || existingBloodBankData.plasmaRhP_AB,
+        plasmaRhP_B: req.body.plasmaRhP_B || existingBloodBankData.plasmaRhP_B,
+        plasmaRhP_A: req.body.plasmaRhP_A || existingBloodBankData.plasmaRhP_A,
+
+        // Update Plasma Rh negative types
+        plasmaRhN_O: req.body.plasmaRhN_O || existingBloodBankData.plasmaRhN_O,
+        plasmaRhN_AB: req.body.plasmaRhN_AB || existingBloodBankData.plasmaRhN_AB,
+        plasmaRhN_B: req.body.plasmaRhN_B || existingBloodBankData.plasmaRhN_B,
+        plasmaRhN_A: req.body.plasmaRhN_A || existingBloodBankData.plasmaRhN_A,
+
+        // Update Platelet Rh positive types
+        plateletRhP_O: req.body.plateletRhP_O || existingBloodBankData.plateletRhP_O,
+        plateletRhP_AB: req.body.plateletRhP_AB || existingBloodBankData.plateletRhP_AB,
+        plateletRhP_B: req.body.plateletRhP_B || existingBloodBankData.plateletRhP_B,
+        plateletRhP_A: req.body.plateletRhP_A || existingBloodBankData.plateletRhP_A,
+
+        // Update Platelet Rh negative types
+        plateletRhN_O: req.body.plateletRhN_O || existingBloodBankData.plateletRhN_O,
+        plateletRhN_AB: req.body.plateletRhN_AB || existingBloodBankData.plateletRhN_AB,
+        plateletRhN_B: req.body.plateletRhN_B || existingBloodBankData.plateletRhN_B,
+        plateletRhN_A: req.body.plateletRhN_A || existingBloodBankData.plateletRhN_A,
+
+        // Update Red Blood Cells Rh positive types
+        rbcP_O: req.body.rbcP_O || existingBloodBankData.rbcP_O,
+        rbcP_AB: req.body.rbcP_AB || existingBloodBankData.rbcP_AB,
+        rbcP_B: req.body.rbcP_B || existingBloodBankData.rbcP_B,
+        rbcP_A: req.body.rbcP_A || existingBloodBankData.rbcP_A,
+
+        // Update Red Blood Cells Rh negative types
+        rbcN_O: req.body.rbcN_O || existingBloodBankData.rbcN_O,
+        rbcN_AB: req.body.rbcN_AB || existingBloodBankData.rbcN_AB,
+        rbcN_B: req.body.rbcN_B || existingBloodBankData.rbcN_B,
+        rbcN_A: req.body.rbcN_A || existingBloodBankData.rbcN_A,
     };
 
     const bloodBank = await prisma.bloodBank.update({
@@ -87,7 +119,7 @@ export const getAllBloodBanks = asyncWrapper(async (req: Request, res: Response,
 });
 
 export const deleteBloodBank = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
-    const bloodBank = await prisma.bloodBank.delete({
+    await prisma.bloodBank.delete({
         where: {
             id: req.query.id as string
         }

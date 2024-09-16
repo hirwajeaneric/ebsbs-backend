@@ -143,13 +143,14 @@ export const addNewUser = asyncWrapper(async (req: Request, res: Response, next:
             return res.status(409).json({ message: 'User account already exists' });
         }
         const hashedPassword = await GeneratePassword(req.body.password, 10);
-        user = await prisma.hospitalAdmin.create({
+        user = await prisma.hospitalWorker.create({
             data: {
                 firstName: req.body.firstName,
                 lastName: req.body.lastName,
                 email: req.body.email,
                 phone: req.body.phone,
                 password: hashedPassword,
+                hospitalId: req.body.hospitalId
             }
         });
     } else if (req.body.role === "Blood Bank Recorder") {
@@ -187,8 +188,8 @@ export const addNewUser = asyncWrapper(async (req: Request, res: Response, next:
 });
 
 export const listUsers = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
-    const hospitalAdmins = await prisma.hospitalAdmin.findMany({ select: { email: true, firstName: true, lastName: true, role: true, id: true, accountStatus: true } });
-    const hospitalWorkers = await prisma.hospitalWorker.findMany({ select: { email: true, firstName: true, lastName: true, role: true, id: true, accountStatus: true } });
+    const hospitalAdmins = await prisma.hospitalAdmin.findMany({ select: { email: true, firstName: true, lastName: true, role: true, id: true, accountStatus: true, hospitalId: true } });
+    const hospitalWorkers = await prisma.hospitalWorker.findMany({ select: { email: true, firstName: true, lastName: true, role: true, id: true, accountStatus: true, hospitalId: true } });
     const bloodBankRecorders = await prisma.bloodBankRecorder.findMany({ select: { email: true, firstName: true, lastName: true, role: true, id: true, accountStatus: true } });
     const users = [...hospitalAdmins, ...hospitalWorkers, ...bloodBankRecorders];
     

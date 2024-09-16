@@ -7,6 +7,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model BloodBag {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  bloodType      String   @db.String
+  bloodGroup     String   @db.String
+  rhesis         String   @db.String
+  quantity       Int      @db.Int
+  bloodQuality    String   @db.String
+  bloodBankId    String   @db.ObjectId
+  hospitalId     String?  @db.ObjectId
+  transfered     Boolean  @default(false)
+  expirationDate DateTime @db.Date
+  code           String   @db.String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
 model HospitalWorker {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
   firstName     String   @db.String
@@ -76,23 +92,38 @@ model Hospital {
   workers  HospitalWorker[]
   requests BloodRequest[]
 
-  // Stock fields for tracking current blood and plasma inventory
-  rhP_O       Int @default(0)
-  rhP_A       Int @default(0)
-  rhP_B       Int @default(0)
-  rhP_AB      Int @default(0)
-  rhN_O       Int @default(0)
-  rhN_A       Int @default(0)
-  rhN_B       Int @default(0)
-  rhN_AB      Int @default(0)
-  plasma_O_P  Int @default(0)
-  plasma_O_N  Int @default(0)
-  plasma_A_P  Int @default(0)
-  plasma_A_N  Int @default(0)
-  plasma_B_P  Int @default(0)
-  plasma_B_N  Int @default(0)
-  plasma_AB_P Int @default(0)
-  plasma_AB_N Int @default(0)
+  rhP_O          Int @default(0)
+  rhP_A          Int @default(0)
+  rhP_B          Int @default(0)
+  rhP_AB         Int @default(0)
+  rhN_O          Int @default(0)
+  rhN_A          Int @default(0)
+  rhN_B          Int @default(0)
+  rhN_AB         Int @default(0)
+  plasmaRhP_O    Int @default(0)
+  plasmaRhP_A    Int @default(0)
+  plasmaRhP_B    Int @default(0)
+  plasmaRhP_AB   Int @default(0)
+  plasmaRhN_O    Int @default(0)
+  plasmaRhN_A    Int @default(0)
+  plasmaRhN_B    Int @default(0)
+  plasmaRhN_AB   Int @default(0)
+  plateletRhP_O  Int @default(0)
+  plateletRhP_A  Int @default(0)
+  plateletRhP_B  Int @default(0)
+  plateletRhP_AB Int @default(0)
+  plateletRhN_O  Int @default(0)
+  plateletRhN_A  Int @default(0)
+  plateletRhN_B  Int @default(0)
+  plateletRhN_AB Int @default(0)
+  rbcP_O         Int @default(0)
+  rbcP_A         Int @default(0)
+  rbcP_B         Int @default(0)
+  rbcP_AB        Int @default(0)
+  rbcN_O         Int @default(0)
+  rbcN_A         Int @default(0)
+  rbcN_B         Int @default(0)
+  rbcN_AB        Int @default(0)
 }
 
 model BloodBank {
@@ -111,7 +142,6 @@ model BloodBank {
   bloodOutTransactions BloodOutTransaction[]
   requests             BloodRequest[]
 
-  // Stock fields for tracking current blood and plasma inventory
   rhP_O             Int                 @default(0)
   rhP_A             Int                 @default(0)
   rhP_B             Int                 @default(0)
@@ -120,63 +150,112 @@ model BloodBank {
   rhN_A             Int                 @default(0)
   rhN_B             Int                 @default(0)
   rhN_AB            Int                 @default(0)
-  plasma_O_P        Int                 @default(0)
-  plasma_O_N        Int                 @default(0)
-  plasma_A_P        Int                 @default(0)
-  plasma_A_N        Int                 @default(0)
-  plasma_B_P        Int                 @default(0)
-  plasma_B_N        Int                 @default(0)
-  plasma_AB_P       Int                 @default(0)
-  plasma_AB_N       Int                 @default(0)
+  plasmaRhP_O       Int                 @default(0)
+  plasmaRhP_A       Int                 @default(0)
+  plasmaRhP_B       Int                 @default(0)
+  plasmaRhP_AB      Int                 @default(0)
+  plasmaRhN_O       Int                 @default(0)
+  plasmaRhN_A       Int                 @default(0)
+  plasmaRhN_B       Int                 @default(0)
+  plasmaRhN_AB      Int                 @default(0)
+  plateletRhP_O     Int                 @default(0)
+  plateletRhP_A     Int                 @default(0)
+  plateletRhP_B     Int                 @default(0)
+  plateletRhP_AB    Int                 @default(0)
+  plateletRhN_O     Int                 @default(0)
+  plateletRhN_A     Int                 @default(0)
+  plateletRhN_B     Int                 @default(0)
+  plateletRhN_AB    Int                 @default(0)
+  rbcP_O            Int                 @default(0)
+  rbcP_A            Int                 @default(0)
+  rbcP_B            Int                 @default(0)
+  rbcP_AB           Int                 @default(0)
+  rbcN_O            Int                 @default(0)
+  rbcN_A            Int                 @default(0)
+  rbcN_B            Int                 @default(0)
+  rbcN_AB           Int                 @default(0)
   BloodBankRecorder BloodBankRecorder[]
 }
 
 model BloodInTransaction {
-  id          String     @id @default(auto()) @map("_id") @db.ObjectId
-  rhP_O       Int        @db.Int
-  rhP_A       Int        @db.Int
-  rhP_B       Int        @db.Int
-  rhP_AB      Int        @db.Int
-  rhN_O       Int        @db.Int
-  rhN_A       Int        @db.Int
-  rhN_B       Int        @db.Int
-  rhN_AB      Int        @db.Int
-  plasma_O_P  Int        @db.Int
-  plasma_O_N  Int        @db.Int
-  plasma_A_P  Int        @db.Int
-  plasma_A_N  Int        @db.Int
-  plasma_B_P  Int        @db.Int
-  plasma_B_N  Int        @db.Int
-  plasma_AB_P Int        @db.Int
-  plasma_AB_N Int        @db.Int
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  BloodBank   BloodBank? @relation(fields: [bloodBankId], references: [id])
-  bloodBankId String?    @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  rhP_O          Int        @db.Int
+  rhP_A          Int        @db.Int
+  rhP_B          Int        @db.Int
+  rhP_AB         Int        @db.Int
+  rhN_O          Int        @db.Int
+  rhN_A          Int        @db.Int
+  rhN_B          Int        @db.Int
+  rhN_AB         Int        @db.Int
+  plasmaRhP_O    Int        @db.Int
+  plasmaRhP_A    Int        @db.Int
+  plasmaRhP_B    Int        @db.Int
+  plasmaRhP_AB   Int        @db.Int
+  plasmaRhN_O    Int        @db.Int
+  plasmaRhN_A    Int        @db.Int
+  plasmaRhN_B    Int        @db.Int
+  plasmaRhN_AB   Int        @db.Int
+  plateletRhP_O  Int        @db.Int
+  plateletRhP_A  Int        @db.Int
+  plateletRhP_B  Int        @db.Int
+  plateletRhP_AB Int        @db.Int
+  plateletRhN_O  Int        @db.Int
+  plateletRhN_A  Int        @db.Int
+  plateletRhN_B  Int        @db.Int
+  plateletRhN_AB Int        @db.Int
+  rbcP_O         Int        @db.Int
+  rbcP_A         Int        @db.Int
+  rbcP_B         Int        @db.Int
+  rbcP_AB        Int        @db.Int
+  rbcN_O         Int        @db.Int
+  rbcN_A         Int        @db.Int
+  rbcN_B         Int        @db.Int
+  rbcN_AB        Int        @db.Int
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  BloodBank      BloodBank? @relation(fields: [bloodBankId], references: [id])
+  bloodBankId    String?    @db.ObjectId
 }
 
 model BloodOutTransaction {
-  id          String     @id @default(auto()) @map("_id") @db.ObjectId
-  rhP_O       Int        @db.Int
-  rhP_A       Int        @db.Int
-  rhP_B       Int        @db.Int
-  rhP_AB      Int        @db.Int
-  rhN_O       Int        @db.Int
-  rhN_A       Int        @db.Int
-  rhN_B       Int        @db.Int
-  rhN_AB      Int        @db.Int
-  plasma_O_P  Int        @db.Int
-  plasma_O_N  Int        @db.Int
-  plasma_A_P  Int        @db.Int
-  plasma_A_N  Int        @db.Int
-  plasma_B_P  Int        @db.Int
-  plasma_B_N  Int        @db.Int
-  plasma_AB_P Int        @db.Int
-  plasma_AB_N Int        @db.Int
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  BloodBank   BloodBank? @relation(fields: [bloodBankId], references: [id])
-  bloodBankId String?    @db.ObjectId
+  id             String     @id @default(auto()) @map("_id") @db.ObjectId
+  rhP_O          Int        @db.Int
+  rhP_A          Int        @db.Int
+  rhP_B          Int        @db.Int
+  rhP_AB         Int        @db.Int
+  rhN_O          Int        @db.Int
+  rhN_A          Int        @db.Int
+  rhN_B          Int        @db.Int
+  rhN_AB         Int        @db.Int
+  plasmaRhP_O    Int        @db.Int
+  plasmaRhP_A    Int        @db.Int
+  plasmaRhP_B    Int        @db.Int
+  plasmaRhP_AB   Int        @db.Int
+  plasmaRhN_O    Int        @db.Int
+  plasmaRhN_A    Int        @db.Int
+  plasmaRhN_B    Int        @db.Int
+  plasmaRhN_AB   Int        @db.Int
+  plateletRhP_O  Int        @db.Int
+  plateletRhP_A  Int        @db.Int
+  plateletRhP_B  Int        @db.Int
+  plateletRhP_AB Int        @db.Int
+  plateletRhN_O  Int        @db.Int
+  plateletRhN_A  Int        @db.Int
+  plateletRhN_B  Int        @db.Int
+  plateletRhN_AB Int        @db.Int
+  rbcP_O         Int        @db.Int
+  rbcP_A         Int        @db.Int
+  rbcP_B         Int        @db.Int
+  rbcP_AB        Int        @db.Int
+  rbcN_O         Int        @db.Int
+  rbcN_A         Int        @db.Int
+  rbcN_B         Int        @db.Int
+  rbcN_AB        Int        @db.Int
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  BloodBank      BloodBank? @relation(fields: [bloodBankId], references: [id])
+  bloodBankId    String?    @db.ObjectId
 }
 
 model BloodRequest {
@@ -192,14 +271,30 @@ model BloodRequest {
   rhN_A             Int      @db.Int
   rhN_B             Int      @db.Int
   rhN_AB            Int      @db.Int
-  plasma_O_P        Int      @db.Int
-  plasma_O_N        Int      @db.Int
-  plasma_A_P        Int      @db.Int
-  plasma_A_N        Int      @db.Int
-  plasma_B_P        Int      @db.Int
-  plasma_B_N        Int      @db.Int
-  plasma_AB_P       Int      @db.Int
-  plasma_AB_N       Int      @db.Int
+  plasmaRhP_O       Int      @db.Int
+  plasmaRhP_A       Int      @db.Int
+  plasmaRhP_B       Int      @db.Int
+  plasmaRhP_AB      Int      @db.Int
+  plasmaRhN_O       Int      @db.Int
+  plasmaRhN_A       Int      @db.Int
+  plasmaRhN_B       Int      @db.Int
+  plasmaRhN_AB      Int      @db.Int
+  plateletRhP_O     Int      @db.Int
+  plateletRhP_A     Int      @db.Int
+  plateletRhP_B     Int      @db.Int
+  plateletRhP_AB    Int      @db.Int
+  plateletRhN_O     Int      @db.Int
+  plateletRhN_A     Int      @db.Int
+  plateletRhN_B     Int      @db.Int
+  plateletRhN_AB    Int      @db.Int
+  rbcP_O            Int      @db.Int
+  rbcP_A            Int      @db.Int
+  rbcP_B            Int      @db.Int
+  rbcP_AB           Int      @db.Int
+  rbcN_O            Int      @db.Int
+  rbcN_A            Int      @db.Int
+  rbcN_B            Int      @db.Int
+  rbcN_AB           Int      @db.Int
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
