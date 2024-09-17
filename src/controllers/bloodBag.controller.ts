@@ -30,7 +30,7 @@ export const createBloodBag = asyncWrapper(async (req: Request, res: Response, n
             bloodQuality: req.body.bloodQuality,
             bloodType: req.body.bloodType,
             expirationDate: expirationDate,
-            quantity: req.body.quantity,
+            amountInLitres: req.body.amountInLitres,
             code: code
         }
     });

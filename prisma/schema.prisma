@@ -12,8 +12,8 @@ model BloodBag {
   bloodType      String   @db.String
   bloodGroup     String   @db.String
   rhesis         String   @db.String
-  quantity       Int      @db.Int
-  bloodQuality    String   @db.String
+  amountInLitres Int      @db.Int
+  bloodQuality   String   @db.String
   bloodBankId    String   @db.ObjectId
   hospitalId     String?  @db.ObjectId
   transfered     Boolean  @default(false)
@@ -124,6 +124,8 @@ model Hospital {
   rbcN_A         Int @default(0)
   rbcN_B         Int @default(0)
   rbcN_AB        Int @default(0)
+
+  BloodInTransaction BloodInTransaction[]
 }
 
 model BloodBank {
@@ -138,7 +140,6 @@ model BloodBank {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  bloodInTransactions  BloodInTransaction[]
   bloodOutTransactions BloodOutTransaction[]
   requests             BloodRequest[]
 
@@ -180,42 +181,42 @@ model BloodBank {
 model BloodInTransaction {
   id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  rhP_O          Int        @db.Int
-  rhP_A          Int        @db.Int
-  rhP_B          Int        @db.Int
-  rhP_AB         Int        @db.Int
-  rhN_O          Int        @db.Int
-  rhN_A          Int        @db.Int
-  rhN_B          Int        @db.Int
-  rhN_AB         Int        @db.Int
-  plasmaRhP_O    Int        @db.Int
-  plasmaRhP_A    Int        @db.Int
-  plasmaRhP_B    Int        @db.Int
-  plasmaRhP_AB   Int        @db.Int
-  plasmaRhN_O    Int        @db.Int
-  plasmaRhN_A    Int        @db.Int
-  plasmaRhN_B    Int        @db.Int
-  plasmaRhN_AB   Int        @db.Int
-  plateletRhP_O  Int        @db.Int
-  plateletRhP_A  Int        @db.Int
-  plateletRhP_B  Int        @db.Int
-  plateletRhP_AB Int        @db.Int
-  plateletRhN_O  Int        @db.Int
-  plateletRhN_A  Int        @db.Int
-  plateletRhN_B  Int        @db.Int
-  plateletRhN_AB Int        @db.Int
-  rbcP_O         Int        @db.Int
-  rbcP_A         Int        @db.Int
-  rbcP_B         Int        @db.Int
-  rbcP_AB        Int        @db.Int
-  rbcN_O         Int        @db.Int
-  rbcN_A         Int        @db.Int
-  rbcN_B         Int        @db.Int
-  rbcN_AB        Int        @db.Int
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
-  BloodBank      BloodBank? @relation(fields: [bloodBankId], references: [id])
-  bloodBankId    String?    @db.ObjectId
+  rhP_O          Int       @db.Int
+  rhP_A          Int       @db.Int
+  rhP_B          Int       @db.Int
+  rhP_AB         Int       @db.Int
+  rhN_O          Int       @db.Int
+  rhN_A          Int       @db.Int
+  rhN_B          Int       @db.Int
+  rhN_AB         Int       @db.Int
+  plasmaRhP_O    Int       @db.Int
+  plasmaRhP_A    Int       @db.Int
+  plasmaRhP_B    Int       @db.Int
+  plasmaRhP_AB   Int       @db.Int
+  plasmaRhN_O    Int       @db.Int
+  plasmaRhN_A    Int       @db.Int
+  plasmaRhN_B    Int       @db.Int
+  plasmaRhN_AB   Int       @db.Int
+  plateletRhP_O  Int       @db.Int
+  plateletRhP_A  Int       @db.Int
+  plateletRhP_B  Int       @db.Int
+  plateletRhP_AB Int       @db.Int
+  plateletRhN_O  Int       @db.Int
+  plateletRhN_A  Int       @db.Int
+  plateletRhN_B  Int       @db.Int
+  plateletRhN_AB Int       @db.Int
+  rbcP_O         Int       @db.Int
+  rbcP_A         Int       @db.Int
+  rbcP_B         Int       @db.Int
+  rbcP_AB        Int       @db.Int
+  rbcN_O         Int       @db.Int
+  rbcN_A         Int       @db.Int
+  rbcN_B         Int       @db.Int
+  rbcN_AB        Int       @db.Int
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  Hospital       Hospital? @relation(fields: [hospitalId], references: [id])
+  hospitalId     String?   @db.ObjectId
 }
 
 model BloodOutTransaction {
@@ -256,13 +257,14 @@ model BloodOutTransaction {
   updatedAt      DateTime   @updatedAt
   BloodBank      BloodBank? @relation(fields: [bloodBankId], references: [id])
   bloodBankId    String?    @db.ObjectId
+  hospitalId     String?    @db.ObjectId
 }
 
 model BloodRequest {
   id                String   @id @default(auto()) @map("_id") @db.ObjectId
   hospitalId        String   @db.ObjectId
-  idOfOtherHospital String   @db.ObjectId
-  status            String   @db.String
+  idOfOtherHospital String?  @db.ObjectId
+  status            String   @default("Pending")
   rhP_O             Int      @db.Int
   rhP_A             Int      @db.Int
   rhP_B             Int      @db.Int

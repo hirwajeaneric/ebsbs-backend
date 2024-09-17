@@ -5,6 +5,7 @@ import userRouter from '../routes/user.routes';
 import bloodBankRouter from '../routes/bloodBank.routes';
 import hospitalRouter from '../routes/hospital.routes';
 import bloodBagRouter from '../routes/bloodBag.routes';
+import bloodRequestRouter from '../routes/bloodRequest.routes';
 
 export default async (app: Application) => {
     app.use(express.json());
@@ -28,6 +29,7 @@ export default async (app: Application) => {
     app.use('/api/v1/bloodbanks', bloodBankRouter);
     app.use('/api/v1/hospitals', hospitalRouter);
     app.use('/api/v1/bloodbags', bloodBagRouter);
+    app.use('/api/v1/bloodrequests', bloodRequestRouter);
 
     app.use(ErrorHandlerMiddleware);
 
