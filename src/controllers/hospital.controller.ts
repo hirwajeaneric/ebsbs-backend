@@ -30,6 +30,7 @@ export const createHospital = asyncWrapper(async (req: Request, res: Response, n
 
     res.status(201).json({ message: 'Hospital application submitted successfully' });
 });
+
 export const updateHospital = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
     const existingHospitalData = await prisma.hospital.findFirst({
         where: {
@@ -120,6 +121,15 @@ export const getHospital = asyncWrapper(async (req: Request, res: Response, next
     }
 
     res.status(200).json({ hospital });
+});
+
+export const getInactiveHospitals = asyncWrapper(async (req: Request, response: Response, next: NextFunction) => {
+    const hospitals = await prisma.hospital.findMany({
+        where: {
+            accessStatus: "Inactive"
+        }
+    });
+    response.status(200).json({ hospitals });
 });
 
 export const getAllHospitals = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
