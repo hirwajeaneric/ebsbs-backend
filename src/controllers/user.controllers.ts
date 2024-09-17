@@ -41,7 +41,7 @@ export const bloodBankSignIn = asyncWrapper(async (req: Request, res: Response, 
         firstName: existingUser.firstName,
         lastName: existingUser.lastName
     };
-    const cookieName = existingUser.role === "admin" ? "admin-access-token" : "blood-bank-access-token";
+    const cookieName = existingUser.role === "admin" ? "admin-access-token" : "recorder-access-token";
     res
         .cookie(cookieName, token, { httpOnly: true, expires: new Date(Date.now() + 3600000) })
         .status(200)
@@ -127,7 +127,7 @@ export const hospitalSignUp = asyncWrapper(async (req: Request, res: Response, n
         }
     });
 
-    res.status(201).json({ message: 'Account created successfully' });
+    res.status(201).json({ message: 'Account created successfully', userId: user.id });
 });
 
 export const addNewUser = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
