@@ -110,16 +110,21 @@ export const updateHospital = asyncWrapper(async (req: Request, res: Response, n
 
 
 export const getHospital = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
-    const hospital = await prisma.hospital.findFirst({
-        where: {
-            id: req.query.id as string
-        }
-    });
-
-    if (!hospital) {
+    const fetchedHospital = await prisma.hospital.findFirst({ where: { id: req.query.id as string } });
+    if (!fetchedHospital) {
         return res.status(404).json({ message: 'Hospital not found' });
     }
-
+    const hospital = {
+        id: fetchedHospital.id,
+        name: fetchedHospital.name,
+        googleLocation: fetchedHospital.googleLocation,
+        province: fetchedHospital.province,
+        town: fetchedHospital.town,
+        specialization: fetchedHospital.specialization,
+        hospitalType: fetchedHospital.hospitalType,
+        accessStatus: fetchedHospital.accessStatus,
+        createdAt: fetchedHospital.createdAt,
+    }    
     res.status(200).json({ hospital });
 });
 

@@ -1,11 +1,12 @@
 import express from 'express';
 import { validateEmail, validateOTP, validatePasswordReset, validateUpdateUserInfo, validateUserSignIn, validateUserSignUp } from '../utils/userValidation';
-import { addNewUser, adminSignUp, bloodBankSignIn, forgotPassword, hospitalSignIn, hospitalSignUp, listBloodBankEmployees, listHospitalEmployees, listUsers, resetPassword, test, updateAccount, verifyToken } from '../controllers/user.controllers';
+import { addNewUser, adminSignUp, bloodBankSignIn, findUserByHospitalId, forgotPassword, hospitalSignIn, hospitalSignUp, listBloodBankEmployees, listHospitalEmployees, listUsers, resetPassword, test, updateAccount, verifyToken } from '../controllers/user.controllers';
 const userRouter = express.Router();
 
 userRouter.get('/test', test);
 
 userRouter.get('/list', listUsers);
+userRouter.get('/findByHospitalId', findUserByHospitalId);
 userRouter.get('/listHospitalEmployees', listHospitalEmployees);
 userRouter.get('/listBloodBankEmployees', listBloodBankEmployees);
 

@@ -205,6 +205,15 @@ export const listHospitalEmployees = asyncWrapper(async (req: Request, res: Resp
     res.status(200).json({ hospitalWorkers });
 })
 
+export const findUserByHospitalId = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
+    const hospitalAdmin = await prisma.hospitalWorker.findFirst({
+        where: {
+            hospitalId: req.query.hospitalId as string
+        }
+    });
+    res.status(200).json({ hospitalAdmin });
+})
+
 export const listBloodBankEmployees = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
     const bloodBankRecorders = await prisma.bloodBankRecorder.findMany({
         where: {
