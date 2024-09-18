@@ -18,7 +18,6 @@ export const bloodBankSignIn = asyncWrapper(async (req: Request, res: Response, 
         existingUser = await prisma.bloodBankRecorder.findFirst({ where: { email: req.body.email } });
     }
     if (!existingUser) {
-        console.log("Hello")
         return res.status(404).json({ error: 'Invalid credentials' });
     }
     const isPasswordValid = await bcrypt.compare(req.body.password, existingUser.password);
@@ -206,7 +205,7 @@ export const listHospitalEmployees = asyncWrapper(async (req: Request, res: Resp
 })
 
 export const findUserByHospitalId = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
-    const hospitalAdmin = await prisma.hospitalWorker.findFirst({
+    const hospitalAdmin = await prisma.hospitalAdmin.findFirst({
         where: {
             hospitalId: req.query.hospitalId as string
         }
@@ -215,11 +214,7 @@ export const findUserByHospitalId = asyncWrapper(async (req: Request, res: Respo
 })
 
 export const listBloodBankEmployees = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
-    const bloodBankRecorders = await prisma.bloodBankRecorder.findMany({
-        where: {
-            bloodBankId: req.query.bloodBankId as string
-        }
-    });
+    const bloodBankRecorders = await prisma.bloodBankRecorder.findMany({});
     res.status(200).json({ bloodBankRecorders });
 })
 
@@ -273,11 +268,7 @@ export const forgotPassword = asyncWrapper(async (req: Request, res: Response, n
 
 export const resetPassword = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
     const isTokenValid = await ValidateToken(req);
-    console.log(req.user);
-    console.log(isTokenValid);
-    if (!isTokenValid) {
-        return res.status(401).json({ message: 'Invalid or expired token' });
-    }
+    if (!isTokenValid) { return res.status(401).json({ message: 'Invalid or expired token' }) }
     var foundUser: any = {};
 
     if (req.user?.role === "Hospital Worker") {

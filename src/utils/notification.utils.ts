@@ -25,8 +25,8 @@ export const sendEmail = (recipient: string, subject: string, body: string) => {
         }
     });
 };
-// Notification
 
+// Notification
 
 // OTP
 /**

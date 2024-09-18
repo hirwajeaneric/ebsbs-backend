@@ -36,8 +36,6 @@ const ErrorHandlerMiddleware = ( err: CustomError, req: Request, res: Response, 
     errStatus = 404;
   }
 
-  // console.log(errMessage);
-
   return res.status(errStatus).json({
     success: false,
     status: errStatus,
