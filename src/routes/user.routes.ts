@@ -1,6 +1,6 @@
 import express from 'express';
 import { validateEmail, validateOTP, validatePasswordReset, validateUpdateUserInfo, validateUserSignIn, validateUserSignUp } from '../utils/userValidation';
-import { addNewUser, adminSignUp, bloodBankSignIn, findUserByHospitalId, forgotPassword, getBloodBankAdminById, getBloodBankRecorderById, getHospitalAdminById, getHospitalPharmacistById, hospitalSignIn, hospitalSignUp, listBloodBankEmployees, listHospitalEmployees, listUsers, resetPassword, test, updateAccount, verifyToken } from '../controllers/user.controllers';
+import { addNewUser, adminSignUp, bloodBankSignIn, deleteUser, findUserByHospitalId, forgotPassword, getBloodBankAdminById, getBloodBankRecorderById, getHospitalAdminById, getHospitalPharmacistById, hospitalSignIn, hospitalSignUp, listBloodBankEmployees, listHospitalEmployees, listUsers, resetPassword, test, updateAccount, verifyToken } from '../controllers/user.controllers';
 const userRouter = express.Router();
 
 userRouter.get('/test', test);
@@ -26,6 +26,7 @@ userRouter.post('/forgot-password', validateEmail, forgotPassword);
 userRouter.post('/reset-password', validatePasswordReset, resetPassword);
 
 userRouter.put('/update-account', updateAccount);
+userRouter.put('/delete-account', deleteUser);
 
 userRouter.post('/verify-token', validateOTP, verifyToken);
 

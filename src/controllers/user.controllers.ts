@@ -192,7 +192,7 @@ export const listUsers = asyncWrapper(async (req: Request, res: Response, next: 
     const hospitalWorkers = await prisma.hospitalWorker.findMany({ select: { email: true, firstName: true, lastName: true, role: true, id: true, accountStatus: true, hospitalId: true } });
     const bloodBankRecorders = await prisma.bloodBankRecorder.findMany({ select: { email: true, firstName: true, lastName: true, role: true, id: true, accountStatus: true } });
     const users = [...hospitalAdmins, ...hospitalWorkers, ...bloodBankRecorders];
-    
+
     res.status(200).json({ users });
 })
 
@@ -371,7 +371,7 @@ export const updateAccount = asyncWrapper(async (req: Request, res: Response, ne
     var updatedUser: any = {};
     var toBeUpdated: any = {};
 
-    if (req.query.role === "Hospital Worker") {
+    if (req.body.role === "Hospital Worker") {
         toBeUpdated = await prisma.hospitalWorker.findUnique({
             where: { id: req.query.id as string }
         })
@@ -383,7 +383,7 @@ export const updateAccount = asyncWrapper(async (req: Request, res: Response, ne
         toBeUpdated.phone = req.body.phone || toBeUpdated.phone;
         toBeUpdated.email = req.body.email || toBeUpdated.email;
         toBeUpdated.accountStatus = req.body.accountStatus || toBeUpdated.accountStatus;
-        
+
         delete toBeUpdated.id;
 
         updatedUser = await prisma.hospitalWorker.update({
@@ -392,7 +392,7 @@ export const updateAccount = asyncWrapper(async (req: Request, res: Response, ne
         })
     }
 
-    if (req.query.role === "Blood Bank Recorder") {
+    if (req.body.role === "Blood Bank Recorder") {
         toBeUpdated = await prisma.bloodBankRecorder.findUnique({
             where: { id: req.query.id as string }
         })
@@ -405,7 +405,7 @@ export const updateAccount = asyncWrapper(async (req: Request, res: Response, ne
         toBeUpdated.phone = req.body.phone || toBeUpdated.phone;
         toBeUpdated.email = req.body.email || toBeUpdated.email;
         toBeUpdated.accountStatus = req.body.accountStatus || toBeUpdated.accountStatus;
-        
+
         delete toBeUpdated.id;
 
         updatedUser = await prisma.bloodBankRecorder.update({
@@ -414,7 +414,7 @@ export const updateAccount = asyncWrapper(async (req: Request, res: Response, ne
         })
     }
 
-    if (req.query.role === "Hospital Admin") {
+    if (req.body.role === "Hospital Admin") {
         toBeUpdated = await prisma.hospitalAdmin.findUnique({
             where: { id: req.query.id as string }
         })
@@ -426,7 +426,7 @@ export const updateAccount = asyncWrapper(async (req: Request, res: Response, ne
         toBeUpdated.phone = req.body.phone || toBeUpdated.phone;
         toBeUpdated.email = req.body.email || toBeUpdated.email;
         toBeUpdated.accountStatus = req.body.accountStatus || toBeUpdated.accountStatus;
-        
+
         delete toBeUpdated.id;
 
         updatedUser = await prisma.hospitalAdmin.update({
@@ -435,7 +435,7 @@ export const updateAccount = asyncWrapper(async (req: Request, res: Response, ne
         })
     }
 
-    if (req.query.role === "Blood Bank Admin") {
+    if (req.body.role === "Blood Bank Admin") {
         toBeUpdated = await prisma.admin.findUnique({
             where: { id: req.query.id as string }
         })
@@ -447,7 +447,7 @@ export const updateAccount = asyncWrapper(async (req: Request, res: Response, ne
         toBeUpdated.phone = req.body.phone || toBeUpdated.phone;
         toBeUpdated.email = req.body.email || toBeUpdated.email;
         toBeUpdated.accountStatus = req.body.accountStatus || toBeUpdated.accountStatus;
-        
+
         delete toBeUpdated.id;
 
         updatedUser = await prisma.admin.update({
@@ -455,6 +455,9 @@ export const updateAccount = asyncWrapper(async (req: Request, res: Response, ne
             data: toBeUpdated
         })
     }
+
+    console.log("Updated user");
+    console.log(updatedUser);
 
     res.status(200).json({
         message: 'Account Updated successfully',
@@ -478,4 +481,25 @@ export const verifyToken = asyncWrapper(async (req: Request, res: Response, next
         return res.status(401).json({ message: 'Access Denied' });
     }
     res.status(200).json({ message: 'Token is valid' });
+})
+
+export const deleteUser = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.query.id as string;
+    if (req.user?.role === "Hospital Worker") {
+        await prisma.hospitalWorker.delete({ where: { id: userId } });
+    }
+
+    if (req.user?.role === "Blood Bank Recorder") {
+        await prisma.bloodBankRecorder.delete({ where: { id: userId } });
+    }
+
+    if (req.user?.role === "Hospital Admin") {
+        await prisma.hospitalAdmin.delete({ where: { id: userId } });
+    }
+
+    if (req.user?.role === "Blood Bank Admin") {
+        await prisma.admin.delete({ where: { id: userId } });
+    }
+
+    res.status(200).json({ message: 'User deleted successfully' });
 })
