@@ -35,6 +35,7 @@ export const bloodBankSignIn = asyncWrapper(async (req: Request, res: Response, 
     const user = {
         id: existingUser.id,
         email: existingUser.email,
+        phone: existingUser.phone,
         role: existingUser.role,
         accountStatus: existingUser.accountStatus,
         firstName: existingUser.firstName,
@@ -73,6 +74,7 @@ export const hospitalSignIn = asyncWrapper(async (req: Request, res: Response, n
     const user = {
         id: existingUser.id,
         email: existingUser.email,
+        phone: existingUser.phone,
         role: existingUser.role,
         accountStatus: existingUser.accountStatus,
         firstName: existingUser.firstName,
@@ -456,9 +458,6 @@ export const updateAccount = asyncWrapper(async (req: Request, res: Response, ne
         })
     }
 
-    console.log("Updated user");
-    console.log(updatedUser);
-
     res.status(200).json({
         message: 'Account Updated successfully',
         user: {
@@ -470,6 +469,7 @@ export const updateAccount = asyncWrapper(async (req: Request, res: Response, ne
             role: updatedUser.role,
             id: updatedUser.id,
             hospitalId: updatedUser.hospitalId,
+            bloodBankId: updatedUser.bloodBankId
         }
     });
 })
