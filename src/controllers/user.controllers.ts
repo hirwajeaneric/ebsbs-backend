@@ -485,19 +485,21 @@ export const verifyToken = asyncWrapper(async (req: Request, res: Response, next
 
 export const deleteUser = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.query.id as string;
-    if (req.user?.role === "Hospital Worker") {
+    const role = req.query?.role as string;
+    
+    if (role === "Hospital Worker") {
         await prisma.hospitalWorker.delete({ where: { id: userId } });
     }
 
-    if (req.user?.role === "Blood Bank Recorder") {
+    if (role === "Blood Bank Recorder") {
         await prisma.bloodBankRecorder.delete({ where: { id: userId } });
     }
 
-    if (req.user?.role === "Hospital Admin") {
+    if (role === "Hospital Admin") {
         await prisma.hospitalAdmin.delete({ where: { id: userId } });
     }
 
-    if (req.user?.role === "Blood Bank Admin") {
+    if (role === "Blood Bank Admin") {
         await prisma.admin.delete({ where: { id: userId } });
     }
 

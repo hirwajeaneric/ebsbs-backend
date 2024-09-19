@@ -26,7 +26,7 @@ userRouter.post('/forgot-password', validateEmail, forgotPassword);
 userRouter.post('/reset-password', validatePasswordReset, resetPassword);
 
 userRouter.put('/update-account', updateAccount);
-userRouter.put('/delete-account', deleteUser);
+userRouter.delete('/delete-account', deleteUser);
 
 userRouter.post('/verify-token', validateOTP, verifyToken);
 
