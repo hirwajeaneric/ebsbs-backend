@@ -315,4 +315,5 @@ model Admin {
   role          String  @default("Blood Bank Admin") @db.String
   hospitalId    String? @db.ObjectId
   accountStatus String  @default("Active") @db.String
+  bloodBankId   String?  @db.ObjectId
 }

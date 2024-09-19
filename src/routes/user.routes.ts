@@ -1,6 +1,6 @@
 import express from 'express';
 import { validateEmail, validateOTP, validatePasswordReset, validateUpdateUserInfo, validateUserSignIn, validateUserSignUp } from '../utils/userValidation';
-import { addNewUser, adminSignUp, bloodBankSignIn, findUserByHospitalId, forgotPassword, hospitalSignIn, hospitalSignUp, listBloodBankEmployees, listHospitalEmployees, listUsers, resetPassword, test, updateAccount, verifyToken } from '../controllers/user.controllers';
+import { addNewUser, adminSignUp, bloodBankSignIn, findUserByHospitalId, forgotPassword, getBloodBankAdminById, getBloodBankRecorderById, getHospitalAdminById, getHospitalPharmacistById, hospitalSignIn, hospitalSignUp, listBloodBankEmployees, listHospitalEmployees, listUsers, resetPassword, test, updateAccount, verifyToken } from '../controllers/user.controllers';
 const userRouter = express.Router();
 
 userRouter.get('/test', test);
@@ -9,6 +9,11 @@ userRouter.get('/list', listUsers);
 userRouter.get('/findByHospitalId', findUserByHospitalId);
 userRouter.get('/listHospitalEmployees', listHospitalEmployees);
 userRouter.get('/listBloodBankEmployees', listBloodBankEmployees);
+
+userRouter.get('/findAdminById', getBloodBankAdminById);
+userRouter.get('/findBloodBankRecorderById', getBloodBankRecorderById);
+userRouter.get('/findHospitalPharmacistById', getHospitalPharmacistById);
+userRouter.get('/findHospitalAdminById', getHospitalAdminById);
 
 userRouter.post('/bloodbank-sign-in', validateUserSignIn, bloodBankSignIn);
 userRouter.post('/hospital-sign-in', validateUserSignIn, hospitalSignIn);

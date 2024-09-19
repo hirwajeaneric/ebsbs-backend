@@ -51,11 +51,6 @@ export const validateUserSignUp = [
         .withMessage('Phone number is required')
         .isLength({ min: 10, max: 10 })
         .withMessage('Invalid phone number'),
-    body('password')
-        .isLength({ min: 6 })
-        .withMessage('Password must be at least 6 characters long')
-        .isStrongPassword()
-        .withMessage('Password must be at least 6 characters with an Upper case character, lower case character, symbol and digit.'),
     handleValidationErrors
 ];
 

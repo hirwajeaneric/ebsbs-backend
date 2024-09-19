@@ -38,7 +38,8 @@ export const bloodBankSignIn = asyncWrapper(async (req: Request, res: Response, 
         role: existingUser.role,
         accountStatus: existingUser.accountStatus,
         firstName: existingUser.firstName,
-        lastName: existingUser.lastName
+        lastName: existingUser.lastName,
+        bloodBankId: existingUser.bloodBankId,
     };
     const cookieName = existingUser.role === "admin" ? "admin-access-token" : "recorder-access-token";
     res
@@ -141,7 +142,7 @@ export const addNewUser = asyncWrapper(async (req: Request, res: Response, next:
         if (existingUser) {
             return res.status(409).json({ message: 'User account already exists' });
         }
-        const hashedPassword = await GeneratePassword(req.body.password, 10);
+        const hashedPassword = await GeneratePassword(req.body.email, 10);
         user = await prisma.hospitalWorker.create({
             data: {
                 firstName: req.body.firstName,
@@ -161,7 +162,7 @@ export const addNewUser = asyncWrapper(async (req: Request, res: Response, next:
         if (existingUser) {
             return res.status(409).json({ message: 'User account already exists' });
         }
-        const hashedPassword = await GeneratePassword(req.body.password, 10);
+        const hashedPassword = await GeneratePassword(req.body.email, 10);
         user = await prisma.bloodBankRecorder.create({
             data: {
                 firstName: req.body.firstName,
@@ -214,9 +215,49 @@ export const findUserByHospitalId = asyncWrapper(async (req: Request, res: Respo
 })
 
 export const listBloodBankEmployees = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
-    const bloodBankRecorders = await prisma.bloodBankRecorder.findMany({});
+    const bloodBankRecorders = await prisma.bloodBankRecorder.findMany({
+        where: {
+            bloodBankId: req.query.bloodBankId as string
+        }
+    });
     res.status(200).json({ bloodBankRecorders });
 })
+
+export const getBloodBankRecorderById = asyncWrapper((async (req: Request, res: Response, next: NextFunction) => {
+    const user = await prisma.bloodBankRecorder.findFirst({
+        where: {
+            id: req.query.id as string
+        }
+    });
+    res.status(200).json({ user });
+}))
+
+export const getBloodBankAdminById = asyncWrapper((async (req: Request, res: Response, next: NextFunction) => {
+    const user = await prisma.admin.findFirst({
+        where: {
+            id: req.query.id as string
+        }
+    });
+    res.status(200).json({ user });
+}))
+
+export const getHospitalPharmacistById = asyncWrapper((async (req: Request, res: Response, next: NextFunction) => {
+    const user = await prisma.hospitalWorker.findFirst({
+        where: {
+            id: req.query.id as string
+        }
+    });
+    res.status(200).json({ user });
+}))
+
+export const getHospitalAdminById = asyncWrapper((async (req: Request, res: Response, next: NextFunction) => {
+    const user = await prisma.hospitalAdmin.findFirst({
+        where: {
+            id: req.query.id as string
+        }
+    });
+    res.status(200).json({ user });
+}))
 
 export const forgotPassword = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
     var user: any = {};
