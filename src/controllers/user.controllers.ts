@@ -305,6 +305,7 @@ export const forgotPassword = asyncWrapper(async (req: Request, res: Response, n
     }
 
     await sendEmail(user.email, 'Reset Password', `Click here to reset your password: ${url}`);
+    console.log(url);
 
     res.status(200).json({ message: 'Password reset link sent to your email' });
 })
