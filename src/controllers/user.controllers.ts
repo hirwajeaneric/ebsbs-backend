@@ -295,13 +295,13 @@ export const forgotPassword = asyncWrapper(async (req: Request, res: Response, n
 
     var url = ``;
     if (user.role === "Hospital Worker") {
-        url = `${process.env.CLIENT_URL}/hauth/${user.hospitalId}/reset-password?token=${token}&id=${user.id}`;
+        url = `${process.env.CLIENT_URL}/hauth/${user.hospitalId}/reset-password/${token}/${user.id}`;
     } else if (user.role === "Blood Bank Recorder") {
-        url = `${process.env.CLIENT_URL}/bbauth/reset-password?token=${token}&id=${user.id}`;
+        url = `${process.env.CLIENT_URL}/bauth/reset-password/${token}/${user.id}`;
     } else if (user.role === "Hospital Admin") {
-        url = `${process.env.CLIENT_URL}/hauth/${user.hospitalId}/reset-password?token=${token}&id=${user.id}`;
+        url = `${process.env.CLIENT_URL}/hauth/${user.hospitalId}/reset-password/${token}/${user.id}`;
     } else if (user.role === "Blood Bank Admin") {
-        url = `${process.env.CLIENT_URL}/bbauth/reset-password?token=${token}&id=${user.id}`;
+        url = `${process.env.CLIENT_URL}/bauth/reset-password/${token}/${user.id}`;
     }
 
     await sendEmail(user.email, 'Reset Password', `Click here to reset your password: ${url}`);
@@ -318,11 +318,10 @@ export const resetPassword = asyncWrapper(async (req: Request, res: Response, ne
     if (req.user?.role === "Hospital Worker") {
         foundUser = await prisma.hospitalWorker.findFirst({ where: { id: req.user?._id } });
         foundUser.password = await GeneratePassword(req.body.password, 10);
-        await prisma.bloodBankRecorder.update({
+        delete foundUser.id;
+        await prisma.hospitalWorker.update({
             where: { id: req.user?._id },
-            data: {
-                password: foundUser.password
-            }
+            data: foundUser
         });
         await prisma.token.deleteMany({ where: { user: req.user?._id } });
         await sendEmail(foundUser.email, 'Password Reset', `Your password has been reset.`);
@@ -330,11 +329,10 @@ export const resetPassword = asyncWrapper(async (req: Request, res: Response, ne
     } else if (req.user?.role === "Blood Bank Recorder") {
         foundUser = await prisma.bloodBankRecorder.findFirst({ where: { id: req.user?._id } });
         foundUser.password = await GeneratePassword(req.body.password, 10);
+        delete foundUser.id;
         await prisma.bloodBankRecorder.update({
             where: { id: req.user?._id },
-            data: {
-                password: foundUser.password
-            }
+            data: foundUser
         });
         await prisma.token.deleteMany({ where: { user: req.user?._id } });
         await sendEmail(foundUser.email, 'Password Reset', `Your password has been reset.`);
@@ -342,23 +340,21 @@ export const resetPassword = asyncWrapper(async (req: Request, res: Response, ne
     } else if (req.user?.role === "Hospital Admin") {
         foundUser = await prisma.hospitalAdmin.findFirst({ where: { id: req.user?._id } });
         foundUser.password = await GeneratePassword(req.body.password, 10);
-        await prisma.bloodBankRecorder.update({
+        delete foundUser.id;
+        await prisma.hospitalAdmin.update({
             where: { id: req.user?._id },
-            data: {
-                password: foundUser.password
-            }
+            data: foundUser
         });
         await prisma.token.deleteMany({ where: { user: req.user?._id } });
         await sendEmail(foundUser.email, 'Password Reset', `Your password has been reset.`);
         res.status(200).json({ message: 'Password reset successfully' });
     } else if (req.user?.role === "Blood Bank Admin") {
-        foundUser = await prisma.admin.findFirst({ where: { id: req.user?._id } });
+        foundUser = await prisma.admin.findUnique({ where: { id: req.user?._id } });
         foundUser.password = await GeneratePassword(req.body.password, 10);
-        await prisma.bloodBankRecorder.update({
+        delete foundUser.id;
+        await prisma.admin.update({
             where: { id: req.user?._id },
-            data: {
-                password: foundUser.password
-            }
+            data: foundUser
         });
         await prisma.token.deleteMany({ where: { user: req.user?._id } });
         await sendEmail(foundUser.email, 'Password Reset', `Your password has been reset.`);
@@ -487,7 +483,7 @@ export const verifyToken = asyncWrapper(async (req: Request, res: Response, next
 export const deleteUser = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.query.id as string;
     const role = req.query?.role as string;
-    
+
     if (role === "Hospital Worker") {
         await prisma.hospitalWorker.delete({ where: { id: userId } });
     }
