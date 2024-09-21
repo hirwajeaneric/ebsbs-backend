@@ -1,5 +1,5 @@
 import express from 'express';
-import { createRequest, deleteRequest, findRequestById, findRequestsByHospitalId, listAllRequests, updateBloodRequest } from '../controllers/bloodRequest';
+import { createRequest, deleteRequest, findRequestById, findRequestsByHospitalId, listAllRequests, updateBloodRequest } from '../controllers/bloodRequest.controller';
 const bloodRequestRouter = express.Router();
 
 bloodRequestRouter.post('/add', createRequest);

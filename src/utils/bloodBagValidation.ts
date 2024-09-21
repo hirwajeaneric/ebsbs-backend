@@ -17,9 +17,6 @@ export const validateBloodBag = [
     .withMessage('Rhesis must be a string')
     .isIn(['P', 'N'])
     .withMessage('Rhesis must be either P (positive) or N (negative)'),
-  body('quantity')
-    .isInt()
-    .withMessage('Quantity must be an integer greater than 0'),
   body('bloodQuality')
     .isString()
     .withMessage('Blood quality must be a string')

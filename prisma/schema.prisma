@@ -9,10 +9,10 @@ datasource db {
 
 model BloodBag {
   id             String   @id @default(auto()) @map("_id") @db.ObjectId
-  bloodType      String   @db.String
-  bloodGroup     String   @db.String
-  rhesis         String   @db.String
-  amountInLitres Int      @db.Int
+  bloodType      String   @db.String  //"Plasma", "Platelet", "Whole Blood", "Red Blood Cells"
+  bloodGroup     String   @db.String  //"A", "B", "AB", "O"
+  rhesis         String   @db.String  //"P", "N"
+  amountInLitres Float    @default(0.35)
   bloodQuality   String   @db.String
   bloodBankId    String   @db.ObjectId
   hospitalId     String?  @db.ObjectId
