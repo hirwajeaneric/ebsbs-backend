@@ -55,6 +55,9 @@ export const ValidateToken = async (req: Request) => {
             return false;
         } else {
             const payload = jwt.verify(token, SECRET_KEY as string) as UserPayload;
+            if (payload.accountStatus === "Inactive") {
+                return false;
+            }
             req.user = payload;
             return true;
         }

@@ -177,15 +177,29 @@ export const addNewUser = asyncWrapper(async (req: Request, res: Response, next:
         });
     }
 
+    const token = await GenerateToken({
+        _id: user.id,
+        email: user.email,
+        role: user.role,
+        accountStatus: "Active"
+    });
+
+    await prisma.token.create({
+        data: {
+            user: user.id,
+            token,
+            expirationDate: new Date(Date.now() + (1000 * 60 * 60))
+        }
+    })
+
     var emailBody = ``;
     if (user.role === "Hospital Worker") {
-        emailBody = `Dear ${user.firstName} ${user.lastName},\n\nYour account has been created successfully. \n\nHere are your account credentials: \n\nEmail: ${user.email}\nPassword: ${req.body.password}\n\nAccess link: ${process.env.CLIENT_URL}/hauth/${req.body.hospitalId}/sign-in\n\nRemember to reset your password on login. \n\nNow you can log in.\n\nBest Regards,\nAdmin`;
+        emailBody = `Dear ${user.firstName} ${user.lastName},\n\nYour account has been created successfully. \n\nHere are your account credentials: \n\nEmail: ${user.email}\nClick this link to finish setting up your account: ${process.env.CLIENT_URL}/hauth/reset-password/${token}/${user.id}\n\nBest Regards,\nAdmin`;
     } else if (user.role === "Blood Bank Recorder") {
-        emailBody = `Dear ${user.firstName} ${user.lastName},\n\nYour account has been created successfully. \n\nHere are your account credentials: \n\nEmail: ${user.email}\nPassword: ${req.body.password}\n\nAccess link: ${process.env.CLIENT_URL}/bbauth/sign-in\n\nRemember to reset your password on login. \n\nNow you can log in.\n\nBest Regards,\nAdmin`;
+        emailBody = `Dear ${user.firstName} ${user.lastName},\n\nYour account has been created successfully. \n\nHere are your account credentials: \n\nEmail: ${user.email}\nClick this link to finish setting up your account: ${process.env.CLIENT_URL}/bauth/reset-password/${token}/${user.id}\n\nBest Regards,\nAdmin`;
     }
 
     await sendEmail(req.body.email, 'Your account credentials', emailBody);
-
     res.status(201).json({ message: 'Account created successfully' });
 });
 
@@ -312,7 +326,7 @@ export const forgotPassword = asyncWrapper(async (req: Request, res: Response, n
 
 export const resetPassword = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
     const isTokenValid = await ValidateToken(req);
-    if (!isTokenValid) { return res.status(401).json({ message: 'Invalid or expired token' }) }
+    if (!isTokenValid) { return res.status(401).json({ message: 'Access Denied, Invalid or expired token.' }) }
     var foundUser: any = {};
 
     if (req.user?.role === "Hospital Worker") {
