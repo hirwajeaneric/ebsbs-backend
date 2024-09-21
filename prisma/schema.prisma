@@ -13,7 +13,7 @@ model BloodBag {
   bloodGroup     String   @db.String  //"A", "B", "AB", "O"
   rhesis         String   @db.String  //"P", "N"
   amountInLitres Float    @default(0.35)
-  bloodQuality   String   @db.String
+  bloodQuality   String   @db.String  //"Good", "Moderate", "Expiered"
   bloodBankId    String   @db.ObjectId
   hospitalId     String?  @db.ObjectId
   transfered     Boolean  @default(false)

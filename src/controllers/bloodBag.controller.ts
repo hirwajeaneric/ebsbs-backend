@@ -65,7 +65,7 @@ export const createBloodBag = asyncWrapper(async (req: Request, res: Response, n
 });
 
 export const updateBloodBag = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
-    const { id } = req.params;
+    const { id } = req.query;
     const {
         bloodType,
         bloodGroup,
@@ -76,7 +76,7 @@ export const updateBloodBag = asyncWrapper(async (req: Request, res: Response, n
     } = req.body;
 
     // Fetch the existing blood bag for updates
-    const existingBloodBag = await prisma.bloodBag.findUnique({ where: { id } });
+    const existingBloodBag = await prisma.bloodBag.findUnique({ where: { id: id as string } });
 
     if (!existingBloodBag) {
         return res.status(404).json({ message: 'Blood bag not found' });
@@ -96,7 +96,7 @@ export const updateBloodBag = asyncWrapper(async (req: Request, res: Response, n
 
     // Update blood bag details
     const updatedBloodBag = await prisma.bloodBag.update({
-        where: { id },
+        where: { id: id as string },
         data: {
             bloodType: bloodType || existingBloodBag.bloodType,
             bloodGroup: bloodGroup || existingBloodBag.bloodGroup,
