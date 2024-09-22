@@ -63,6 +63,8 @@ export const hospitalSignIn = asyncWrapper(async (req: Request, res: Response, n
     if (!isPasswordValid) {
         return res.status(401).json({ message: 'Invalid email or password' });
     }
+    const hospital = await prisma.hospital.findUnique({ where: { id: existingUser.hospitalId } });
+    
     const token = await GenerateToken({
         _id: existingUser.id,
         email: existingUser.email,
@@ -76,9 +78,11 @@ export const hospitalSignIn = asyncWrapper(async (req: Request, res: Response, n
         email: existingUser.email,
         phone: existingUser.phone,
         role: existingUser.role,
+        hospitalId: existingUser.hospitalId,
         accountStatus: existingUser.accountStatus,
         firstName: existingUser.firstName,
-        lastName: existingUser.lastName
+        lastName: existingUser.lastName,
+        hospitalName: hospital?.name
     };
     const cookieName = existingUser.role === "Hospital Admin" ? "hospital-admin-access-token" : "pharmacist-access-token";
     res
@@ -383,6 +387,7 @@ export const resetPassword = asyncWrapper(async (req: Request, res: Response, ne
 export const updateAccount = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
     var updatedUser: any = {};
     var toBeUpdated: any = {};
+    var hospital: any = {};
 
     if (req.body.role === "Hospital Worker") {
         toBeUpdated = await prisma.hospitalWorker.findUnique({
@@ -402,6 +407,10 @@ export const updateAccount = asyncWrapper(async (req: Request, res: Response, ne
         updatedUser = await prisma.hospitalWorker.update({
             where: { id: req.query.id as string },
             data: toBeUpdated
+        })
+
+        hospital = await prisma.hospital.findUnique({
+            where: { id: toBeUpdated.hospitalId }
         })
     }
 
@@ -446,6 +455,10 @@ export const updateAccount = asyncWrapper(async (req: Request, res: Response, ne
             where: { id: req.query.id as string },
             data: toBeUpdated
         })
+
+        hospital = await prisma.hospital.findUnique({
+            where: { id: toBeUpdated.hospitalId }
+        })
     }
 
     if (req.body.role === "Blood Bank Admin") {
@@ -480,7 +493,8 @@ export const updateAccount = asyncWrapper(async (req: Request, res: Response, ne
             role: updatedUser.role,
             id: updatedUser.id,
             hospitalId: updatedUser.hospitalId,
-            bloodBankId: updatedUser.bloodBankId
+            bloodBankId: updatedUser.bloodBankId,
+            hospitalName: hospital.name
         }
     });
 })
