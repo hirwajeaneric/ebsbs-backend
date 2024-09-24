@@ -134,6 +134,15 @@ export const getInactiveHospitals = asyncWrapper(async (req: Request, response: 
     response.status(200).json({ hospitals });
 });
 
+export const getActiveHospitals = asyncWrapper(async (req: Request, response: Response, next: NextFunction) => {
+    const hospitals = await prisma.hospital.findMany({
+        where: {
+            accessStatus: "Active"
+        }
+    });
+    response.status(200).json({ hospitals });
+});
+
 export const getAllHospitals = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
     const hospitals = await prisma.hospital.findMany();
     res.status(200).json({ hospitals });

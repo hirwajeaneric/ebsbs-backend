@@ -396,6 +396,34 @@ export const findRequestsByHospitalId = asyncWrapper(async (req: Request, res: R
     res.status(200).json({ bloodRequests });
 });
 
+export const findReceivedRequestsByHospitalId = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
+    const { hospitalId } = req.query;
+
+    const bloodRequests = await prisma.bloodRequest.findMany({
+        where: { idOfOtherHospital: hospitalId as string }
+    });
+
+    if (!bloodRequests.length) {
+        return res.status(404).json({ message: 'No blood requests found for this hospital' });
+    }
+
+    res.status(200).json({ bloodRequests });
+})
+
+export const findRequestsByBloodBankId = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
+    const { bloodBankId } = req.query;
+
+    const bloodRequests = await prisma.bloodRequest.findMany({
+        where: { bloodBankId: bloodBankId as string}
+    });
+
+    if (!bloodRequests.length) {
+        return res.status(404).json({ message: 'No blood requests found for this blood bank' });
+    }
+
+    res.status(200).json({ bloodRequests });
+})
+
 export const deleteRequest = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.query;
 
