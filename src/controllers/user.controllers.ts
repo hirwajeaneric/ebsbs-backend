@@ -313,11 +313,11 @@ export const forgotPassword = asyncWrapper(async (req: Request, res: Response, n
 
     var url = ``;
     if (user.role === "Hospital Worker") {
-        url = `${process.env.CLIENT_URL}/hauth/${user.hospitalId}/reset-password/${token}/${user.id}`;
+        url = `${process.env.CLIENT_URL}/hauth/reset-password/${token}/${user.id}`;
     } else if (user.role === "Blood Bank Recorder") {
         url = `${process.env.CLIENT_URL}/bauth/reset-password/${token}/${user.id}`;
     } else if (user.role === "Hospital Admin") {
-        url = `${process.env.CLIENT_URL}/hauth/${user.hospitalId}/reset-password/${token}/${user.id}`;
+        url = `${process.env.CLIENT_URL}/hauth/reset-password/${token}/${user.id}`;
     } else if (user.role === "Blood Bank Admin") {
         url = `${process.env.CLIENT_URL}/bauth/reset-password/${token}/${user.id}`;
     }

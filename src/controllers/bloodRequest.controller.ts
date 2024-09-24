@@ -42,9 +42,6 @@ export const createRequest = asyncWrapper(async (req: Request, res: Response, ne
         rbcN_AB
     } = req.body;
 
-    console.log("Hello");
-    console.log(req.body);
-
     // Validate input - Add additional validation if necessary
     if (!hospitalId) {
         return res.status(400).json({ message: 'Hospital ID is required' });
