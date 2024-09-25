@@ -85,7 +85,7 @@ export const createRequest = asyncWrapper(async (req: Request, res: Response, ne
             rbcN_A: Number(rbcN_A) || 0,
             rbcN_B: Number(rbcN_B) || 0,
             rbcN_AB: Number(rbcN_AB) || 0,
-            status: "pending", // Default status is "pending"
+            status: "Pending", // Default status is "pending"
         }
     });
 
@@ -122,8 +122,48 @@ export const updateBloodRequest = asyncWrapper(async (req: Request, res: Respons
     // Update the status of the blood request
     const updatedRequest = await prisma.bloodRequest.update({
         where: { id: id as string },
-        data: { status: status || existingBloodRequest.status, bloodBankId: bloodBankId }
+        data: {
+            status: status || existingBloodRequest.status,
+            bloodBankId: bloodBankId,
+            hospitalId: existingBloodRequest.hospitalId,
+            idOfOtherHospital: existingBloodRequest.idOfOtherHospital,
+            rhP_O: existingBloodRequest.rhP_O,
+            rhP_A: existingBloodRequest.rhP_A,
+            rhP_B: existingBloodRequest.rhP_B,
+            rhP_AB: existingBloodRequest.rhP_AB,
+            rhN_O: existingBloodRequest.rhN_O,
+            rhN_A: existingBloodRequest.rhN_A,
+            rhN_B: existingBloodRequest.rhN_B,
+            rhN_AB: existingBloodRequest.rhN_AB,
+            plasmaRhP_O: existingBloodRequest.plasmaRhP_O,
+            plasmaRhP_A: existingBloodRequest.plasmaRhP_A,
+            plasmaRhP_B: existingBloodRequest.plasmaRhP_B,
+            plasmaRhP_AB: existingBloodRequest.plasmaRhP_AB,
+            plasmaRhN_O: existingBloodRequest.plasmaRhN_O,
+            plasmaRhN_A: existingBloodRequest.plasmaRhN_A,
+            plasmaRhN_B: existingBloodRequest.plasmaRhN_B,
+            plasmaRhN_AB: existingBloodRequest.plasmaRhN_AB,
+            plateletRhP_O: existingBloodRequest.plateletRhP_O,
+            plateletRhP_A: existingBloodRequest.plateletRhP_A,
+            plateletRhP_B: existingBloodRequest.plateletRhP_B,
+            plateletRhP_AB: existingBloodRequest.plateletRhP_AB,
+            plateletRhN_O: existingBloodRequest.plateletRhN_O,
+            plateletRhN_A: existingBloodRequest.plateletRhN_A,
+            plateletRhN_B: existingBloodRequest.plateletRhN_B,
+            plateletRhN_AB: existingBloodRequest.plateletRhN_AB,
+            rbcP_O: existingBloodRequest.rbcP_O,
+            rbcP_A: existingBloodRequest.rbcP_A,
+            rbcP_B: existingBloodRequest.rbcP_B,
+            rbcP_AB: existingBloodRequest.rbcP_AB,
+            rbcN_O: existingBloodRequest.rbcN_O,
+            rbcN_A: existingBloodRequest.rbcN_A,
+            rbcN_B: existingBloodRequest.rbcN_B,
+            rbcN_AB: existingBloodRequest.rbcN_AB,
+        }
     });
+    
+    console.log("updateBloodRequest");
+    console.log(updateBloodRequest);
 
     if (status === "Delivered") {
         // Handle the blood transfer for each blood type in the request
@@ -208,7 +248,7 @@ export const updateBloodRequest = asyncWrapper(async (req: Request, res: Respons
         }
 
         // Create a new BloodOutTransaction
-        const bloodOutTransaction = await prisma.bloodOutTransaction.create({
+        await prisma.bloodOutTransaction.create({
             data: {
                 bloodBankId: bloodBankId,
                 hospitalId: hospitalId,
@@ -248,7 +288,7 @@ export const updateBloodRequest = asyncWrapper(async (req: Request, res: Respons
         });
 
         // Create a new BloodInTransaction
-        const bloodInTransaction = await prisma.bloodInTransaction.create({
+        await prisma.bloodInTransaction.create({
             data: {
                 hospitalId: hospitalId,
                 rhP_O: existingBloodRequest.rhP_O,
@@ -414,7 +454,7 @@ export const findRequestsByBloodBankId = asyncWrapper(async (req: Request, res: 
     const { bloodBankId } = req.query;
 
     const bloodRequests = await prisma.bloodRequest.findMany({
-        where: { bloodBankId: bloodBankId as string}
+        where: { bloodBankId: bloodBankId as string }
     });
 
     if (!bloodRequests.length) {
