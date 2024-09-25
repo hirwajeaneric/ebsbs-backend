@@ -386,7 +386,7 @@ export const findRequestsByHospitalId = asyncWrapper(async (req: Request, res: R
     const { hospitalId } = req.query;
 
     const bloodRequests = await prisma.bloodRequest.findMany({
-        where: { hospitalId: hospitalId as string}
+        where: { hospitalId: hospitalId as string }
     });
 
     if (!bloodRequests.length) {
