@@ -121,6 +121,39 @@ export const getHospital = asyncWrapper(async (req: Request, res: Response, next
         hospitalType: fetchedHospital.hospitalType,
         accessStatus: fetchedHospital.accessStatus,
         createdAt: fetchedHospital.createdAt,
+        updatedAt: fetchedHospital.updatedAt,
+        rhP_O: fetchedHospital.rhP_O,
+        rhP_AB: fetchedHospital.rhP_AB,
+        rhP_B: fetchedHospital.rhP_B,
+        rhP_A: fetchedHospital.rhP_A,
+        rhN_O: fetchedHospital.rhN_O,
+        rhN_AB: fetchedHospital.rhN_AB,
+        rhN_B: fetchedHospital.rhN_B,
+        rhN_A: fetchedHospital.rhN_A,
+        plasmaRhP_O: fetchedHospital.plasmaRhP_O,
+        plasmaRhP_AB: fetchedHospital.plasmaRhP_AB,
+        plasmaRhP_B: fetchedHospital.plasmaRhP_B,
+        plasmaRhP_A: fetchedHospital.plasmaRhP_A,
+        plasmaRhN_O: fetchedHospital.plasmaRhN_O,
+        plasmaRhN_AB: fetchedHospital.plasmaRhN_AB,
+        plasmaRhN_B: fetchedHospital.plasmaRhN_B,
+        plasmaRhN_A: fetchedHospital.plasmaRhN_A,
+        plateletRhP_O: fetchedHospital.plateletRhP_O,
+        plateletRhP_AB: fetchedHospital.plateletRhP_AB,
+        plateletRhP_B: fetchedHospital.plateletRhP_B,
+        plateletRhP_A: fetchedHospital.plateletRhP_A,
+        plateletRhN_O: fetchedHospital.plateletRhN_O,
+        plateletRhN_AB: fetchedHospital.plateletRhN_AB,
+        plateletRhN_B: fetchedHospital.plateletRhN_B,
+        plateletRhN_A: fetchedHospital.plateletRhN_A,
+        rbcP_O: fetchedHospital.rbcP_O,
+        rbcP_AB: fetchedHospital.rbcP_AB,
+        rbcP_B: fetchedHospital.rbcP_B,
+        rbcP_A: fetchedHospital.rbcP_A,
+        rbcN_O: fetchedHospital.rbcN_O,
+        rbcN_AB: fetchedHospital.rbcN_AB,
+        rbcN_B: fetchedHospital.rbcN_B,
+        rbcN_A: fetchedHospital.rbcN_A,
     }
     res.status(200).json({ hospital });
 });
@@ -156,4 +189,39 @@ export const deleteHospital = asyncWrapper(async (req: Request, res: Response, n
     });
 
     res.status(200).json({ message: 'Hospital deleted successfully' });
+});
+
+export const searchHospitalsByBlood = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
+    const { bloodType, bloodGroup, rhesis } = req.body;
+
+    // Define the column in the hospital table to check based on bloodType, bloodGroup, and Rhesis
+    let bloodField;
+    if (bloodType === "Plasma") {
+        bloodField = `plasmaRh${rhesis}_${bloodGroup}`;
+    } else if (bloodType === "Platelet") {
+        bloodField = `plateletRh${rhesis}_${bloodGroup}`;
+    } else if (bloodType === "Red Blood Cells") {
+        bloodField = `rbc${rhesis}_${bloodGroup}`;
+    } else if (bloodType === "Whole Blood") {
+        bloodField = `rh${rhesis}_${bloodGroup}`;
+    }
+
+    if (!bloodField) {
+        return res.status(400).json({ message: "Invalid blood type" });
+    }
+
+    // Query hospitals that have the requested blood type and meet the blood quality condition
+    const hospitals = await prisma.hospital.findMany({
+        where: {
+            [bloodField]: {
+                gt: 0, // Ensure there is available stock
+            },
+        },
+    });
+
+    if (!hospitals.length) {
+        return res.status(404).json({ message: "No hospitals found with the requested blood type and quality" });
+    }
+
+    res.status(200).json({ hospitals });
 });

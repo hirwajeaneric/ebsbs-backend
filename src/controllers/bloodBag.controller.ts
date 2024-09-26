@@ -6,6 +6,8 @@ import prisma from "../db/client";
 export const createBloodBag = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
     var expirationDate: Date = new Date();
 
+    console.log(req.body);
+
     // Set expiration date based on blood type
     if (req.body.bloodType === "Plasma") {
         expirationDate = new Date(expirationDate.setDate(expirationDate.getDate() + 265));
@@ -17,9 +19,15 @@ export const createBloodBag = asyncWrapper(async (req: Request, res: Response, n
         expirationDate = new Date(expirationDate.setDate(expirationDate.getDate() + 42));
     }
 
+    // console.log("expirationDate");
+    // console.log(expirationDate);
+
     // Generate 9-character code (e.g., first letter of bloodType, bloodGroup, rhesis, and last 6 digits of timestamp)
     const currentTimestamp = Date.now();
     const code = `${req.body.bloodType[0]}${req.body.bloodGroup}${req.body.rhesis}${currentTimestamp.toString().slice(-6)}`;
+
+    // console.log("code");
+    // console.log(code);
 
     // Create blood bag entry
     const bloodBag = await prisma.bloodBag.create({
@@ -34,6 +42,9 @@ export const createBloodBag = asyncWrapper(async (req: Request, res: Response, n
             code: code
         }
     });
+
+    // console.log("bloodBag");
+    // console.log(bloodBag);
 
     if (bloodBag) {
         const bloodBank = await prisma.bloodBank.findFirst({
