@@ -5,9 +5,7 @@ import prisma from "../db/client";
 
 export const createBloodBag = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
     var expirationDate: Date = new Date();
-
-    console.log(req.body);
-
+    
     // Set expiration date based on blood type
     if (req.body.bloodType === "Plasma") {
         expirationDate = new Date(expirationDate.setDate(expirationDate.getDate() + 265));

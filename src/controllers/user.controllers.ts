@@ -24,6 +24,10 @@ export const bloodBankSignIn = asyncWrapper(async (req: Request, res: Response, 
     if (!isPasswordValid) {
         return res.status(401).json({ error: 'Invalid email or password' });
     }
+
+    if (existingUser.accountStatus === "Inactive") {
+        return res.status(401).json({ error: 'Account is inactive' });
+    }
     const token = await GenerateToken({
         _id: existingUser.id,
         email: existingUser.email,
@@ -63,8 +67,11 @@ export const hospitalSignIn = asyncWrapper(async (req: Request, res: Response, n
     if (!isPasswordValid) {
         return res.status(401).json({ message: 'Invalid email or password' });
     }
+    if (existingUser.accountStatus === "Inactive") {
+        return res.status(401).json({ message: 'Account is currently not active' }); 
+    }
     const hospital = await prisma.hospital.findUnique({ where: { id: existingUser.hospitalId } });
-    
+
     const token = await GenerateToken({
         _id: existingUser.id,
         email: existingUser.email,
