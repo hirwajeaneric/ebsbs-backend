@@ -78,7 +78,7 @@ export const createNotification = asyncWrapper(async (req: Request, res: Respons
         notification = await prisma.notification.create({
             data: {
                 title: "Blood Request Accepted",
-                content: `${sendingBloodBankName} has accepted the blood request from ${receivingHospitalName}.`,
+                content: content,
                 sendingUserId,
                 sendingUserName,
                 sendingBloodBankId,
@@ -100,7 +100,7 @@ export const createNotification = asyncWrapper(async (req: Request, res: Respons
         notification = await prisma.notification.create({
             data: {
                 title: "Blood Delivery",
-                content: `Blood from ${sendingBloodBankName} has been delivered to ${receivingHospitalName}.`,
+                content: content,
                 sendingUserId,
                 sendingUserName,
                 sendingBloodBankId,
@@ -138,10 +138,10 @@ export const deleteNotification = asyncWrapper(async (req: Request, res: Respons
 
 // Get notifications for a specific blood bank
 export const getNotificationsByBloodBank = asyncWrapper(async (req: Request, res: Response) => {
-    const { bloodBankId } = req.params;
+    const { bloodBankId } = req.query;
 
     const notifications = await prisma.notification.findMany({
-        where: { receivingBloodBankId: bloodBankId }
+        where: { receivingBloodBankId: bloodBankId as string}
     });
 
     res.status(200).json({ notifications });
@@ -149,10 +149,10 @@ export const getNotificationsByBloodBank = asyncWrapper(async (req: Request, res
 
 // Get notifications for a specific hospital
 export const getNotificationsByHospital = asyncWrapper(async (req: Request, res: Response) => {
-    const { hospitalId } = req.params;
+    const { hospitalId } = req.query;
 
     const notifications = await prisma.notification.findMany({
-        where: { receivingHospitalId: hospitalId }
+        where: { receivingHospitalId: hospitalId as string }
     });
 
     res.status(200).json({ notifications });
@@ -160,10 +160,10 @@ export const getNotificationsByHospital = asyncWrapper(async (req: Request, res:
 
 // Get notifications sent by a specific hospital
 export const getNotificationsSentByHospital = asyncWrapper(async (req: Request, res: Response) => {
-    const { hospitalId } = req.params;
+    const { hospitalId } = req.query;
 
     const notifications = await prisma.notification.findMany({
-        where: { sendingHospitalId: hospitalId }
+        where: { sendingHospitalId: hospitalId as string }
     });
 
     res.status(200).json({ notifications });
@@ -171,11 +171,25 @@ export const getNotificationsSentByHospital = asyncWrapper(async (req: Request, 
 
 // Get notifications sent by a specific blood bank
 export const getNotificationsSentByBloodBank = asyncWrapper(async (req: Request, res: Response) => {
-    const { bloodBankId } = req.params;
+    const { bloodBankId } = req.query;
 
     const notifications = await prisma.notification.findMany({
-        where: { sendingBloodBankId: bloodBankId }
+        where: { sendingBloodBankId: bloodBankId as string }
     });
 
     res.status(200).json({ notifications });
+});
+
+export const setToSeen = asyncWrapper(async (req: Request, res: Response) => {
+    const notificationId = req.query.id as string;
+
+    const updatedNotification = await prisma.notification.update({
+        where: {
+            id: notificationId
+        },
+        data: {
+            status: "Seen"
+        }
+    });
+    res.status(200).json({ message: "Seen" });
 });

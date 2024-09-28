@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-
 import asyncWrapper from '../middlewares/AsyncWrapper';
 import prisma from "../db/client";
 
@@ -88,6 +87,51 @@ export const createRequest = asyncWrapper(async (req: Request, res: Response, ne
             status: "Pending", // Default status is "pending"
         }
     });
+
+    if (!bloodRequest) {
+        return res.status(500).json({ message: 'Failed to create blood request' });
+    }
+
+    // Notification managment 
+    var message = "";
+    let hospitalThatSentRequest = await prisma.hospital.findFirst({ where: { id: bloodBankId }});
+    let hospitalToReceiveRequest = null; 
+    let bloodBankToReceiveRequest = null;
+    let receivingHospitalId = null;
+    let receivingHospitalName = null;
+    let receivingBloodBankId = null;
+    let receivingBloodBankName = null;
+    let link = null;
+
+    if (bloodRequest.idOfOtherHospital !== null) {
+        hospitalToReceiveRequest = await prisma.hospital.findFirst({ where: { id: bloodRequest.idOfOtherHospital }});    
+        message =  `New Blood Request received from ${hospitalThatSentRequest?.name}. \nClick on the link bellow to view details`
+        link = `${process.env.CLIENT_URL}/hdash/${hospitalToReceiveRequest?.id}/r/requests/incoming/${bloodRequest.id}`
+        receivingHospitalId = hospitalToReceiveRequest?.id;
+        receivingHospitalName = hospitalToReceiveRequest?.name;
+    } else if (bloodRequest.bloodBankId !== null) {
+        bloodBankToReceiveRequest = await prisma.bloodBank.findFirst({ where: { id: bloodRequest.bloodBankId }});
+        message = `New Blood Request received from ${hospitalThatSentRequest?.name}. \nClick on the link bellow to view details`;
+        link = `${process.env.CLIENT_URL}/dashboard/r/requests/${bloodRequest.id}`
+        receivingBloodBankId = bloodBankToReceiveRequest?.id;
+        receivingBloodBankName = bloodBankToReceiveRequest?.name;
+    }
+
+    await prisma.notification.create({
+        data: {
+            title: "New Blood Request Request Alert",
+            content: message,
+            sendingHospitalName: hospitalThatSentRequest?.name,
+            sendingHospitalId: hospitalThatSentRequest?.id,
+            receivingBloodBankName: receivingBloodBankName,
+            receivingBloodBankId: receivingBloodBankId,
+            receivingHospitalName: receivingHospitalName,
+            receivingHospitalId: receivingHospitalId,
+            type: "Blood Request",
+            status: "Unseen",
+            link: link
+        }
+    })
 
     res.status(201).json({ message: 'Blood Request Sent', bloodRequest });
 });
@@ -396,10 +440,10 @@ export const updateBloodRequest = asyncWrapper(async (req: Request, res: Respons
             if (!hospital) {
                 throw new Error("Invalid hospital ID");
             }
-            console.log("Borrowed Hospital");
-            console.log(hospital);
-            console.log("Id of this hospital");
-            console.log(idOfOtherHospital);
+            // console.log("Borrowed Hospital");
+            // console.log(hospital);
+            // console.log("Id of this hospital");
+            // console.log(idOfOtherHospital);
             
             await prisma.hospital.update({
                 where: { id: idOfOtherHospital },
@@ -514,13 +558,9 @@ export const findRequestsByHospitalId = asyncWrapper(async (req: Request, res: R
 export const findReceivedRequestsByHospitalId = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
     const { hospitalId } = req.query;
 
-    console.log(hospitalId);
-
     const bloodRequests = await prisma.bloodRequest.findMany({
         where: { idOfOtherHospital: hospitalId as string }
     });
-
-    console.log(bloodRequests);
 
     if (!bloodRequests.length) {
         return res.status(404).json({ message: 'No blood requests found for this hospital' });

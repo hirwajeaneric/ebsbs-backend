@@ -332,6 +332,7 @@ model Notification {
   sendingBloodBankId     String?    @db.ObjectId
   sendingBloodBankName   String?    @db.String
   content                String     @db.String
+  link                   String?     @db.String
   status                 String     @default("Unseen") @db.String
   createdAt              DateTime   @default(now())
   updatedAt              DateTime   @updatedAt
