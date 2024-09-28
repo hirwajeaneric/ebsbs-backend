@@ -127,3 +127,24 @@ export const deleteBloodBank = asyncWrapper(async (req: Request, res: Response, 
 
     res.status(200).json({ message: 'Blood bank deleted successfully'});
 });
+
+export const adminOverviewData = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
+    const bloodBankId = req.query.id as string;
+    const hospitals = await prisma.hospital.findMany({
+        where: {
+            accessStatus: "Active"
+        }
+    })
+    const applications = await prisma.hospital.findMany({
+        where: {
+            accessStatus: "Inactive"
+        }
+    });
+    const bloodBankUsers = await prisma.bloodBankRecorder.findMany({
+        where: {
+            bloodBankId: bloodBankId
+        }
+    });
+    const notifications: any = [];
+    res.status(200).json({ hospitals, applications, notifications, users: bloodBankUsers });
+});
