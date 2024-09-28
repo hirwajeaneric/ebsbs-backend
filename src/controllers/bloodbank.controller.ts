@@ -89,9 +89,7 @@ export const updateBloodBank = asyncWrapper(async (req: Request, res: Response, 
     };
 
     const bloodBank = await prisma.bloodBank.update({
-        where: {
-            id: req.query.id as string
-        },
+        where: { id: req.query.id as string },
         data: updatedData
     });
     
@@ -100,16 +98,8 @@ export const updateBloodBank = asyncWrapper(async (req: Request, res: Response, 
 
 
 export const getBloodBank = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
-    const bloodBank = await prisma.bloodBank.findFirst({
-        where: {
-            id: req.query.id as string
-        }
-    });
-
-    if (!bloodBank) {
-        return res.status(404).json({ message: 'Blood bank not found' });
-    }
-
+    const bloodBank = await prisma.bloodBank.findFirst({ where: { id: req.query.id as string }});
+    if (!bloodBank) { return res.status(404).json({ message: 'Blood bank not found' }) }
     res.status(200).json({ bloodBank });
 });
 
@@ -119,32 +109,18 @@ export const getAllBloodBanks = asyncWrapper(async (req: Request, res: Response,
 });
 
 export const deleteBloodBank = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
-    await prisma.bloodBank.delete({
-        where: {
-            id: req.query.id as string
-        }
-    });
+    await prisma.bloodBank.delete({ where: { id: req.query.id as string }});
 
     res.status(200).json({ message: 'Blood bank deleted successfully'});
 });
 
 export const adminOverviewData = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
     const bloodBankId = req.query.id as string;
-    const hospitals = await prisma.hospital.findMany({
-        where: {
-            accessStatus: "Active"
-        }
-    })
-    const applications = await prisma.hospital.findMany({
-        where: {
-            accessStatus: "Inactive"
-        }
-    });
-    const bloodBankUsers = await prisma.bloodBankRecorder.findMany({
-        where: {
-            bloodBankId: bloodBankId
-        }
-    });
+    
+    const hospitals = await prisma.hospital.findMany({ where: { accessStatus: "Active" }})
+    const applications = await prisma.hospital.findMany({ where: { accessStatus: "Inactive" }});
+    const bloodBankUsers = await prisma.bloodBankRecorder.findMany({ where: { bloodBankId: bloodBankId }});
     const notifications: any = [];
+    
     res.status(200).json({ hospitals, applications, notifications, users: bloodBankUsers });
 });

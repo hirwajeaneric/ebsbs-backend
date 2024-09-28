@@ -9,11 +9,11 @@ datasource db {
 
 model BloodBag {
   id             String   @id @default(auto()) @map("_id") @db.ObjectId
-  bloodType      String   @db.String  //"Plasma", "Platelet", "Whole Blood", "Red Blood Cells"
-  bloodGroup     String   @db.String  //"A", "B", "AB", "O"
-  rhesis         String   @db.String  //"P", "N"
+  bloodType      String   @db.String //"Plasma", "Platelet", "Whole Blood", "Red Blood Cells"
+  bloodGroup     String   @db.String //"A", "B", "AB", "O"
+  rhesis         String   @db.String //"P", "N"
   amountInLitres Float    @default(0.35)
-  bloodQuality   String   @db.String  //"Good", "Moderate", "Expiered"
+  bloodQuality   String   @db.String //"Good", "Moderate", "Expiered"
   bloodBankId    String   @db.ObjectId
   hospitalId     String?  @db.ObjectId
   transfered     Boolean  @default(false)
@@ -126,6 +126,8 @@ model Hospital {
   rbcN_AB        Int @default(0)
 
   BloodInTransaction BloodInTransaction[]
+
+  Notification Notification[]
 }
 
 model BloodBank {
@@ -176,6 +178,8 @@ model BloodBank {
   rbcN_B            Int                 @default(0)
   rbcN_AB           Int                 @default(0)
   BloodBankRecorder BloodBankRecorder[]
+
+  Notification Notification[]
 }
 
 model BloodInTransaction {
@@ -315,5 +319,27 @@ model Admin {
   role          String  @default("Blood Bank Admin") @db.String
   hospitalId    String? @db.ObjectId
   accountStatus String  @default("Active") @db.String
-  bloodBankId   String?  @db.ObjectId
+  bloodBankId   String? @db.ObjectId
+}
+
+model Notification {
+  id                     String     @id @default(auto()) @map("_id") @db.ObjectId
+  title                  String     @db.String
+  sendingUserId          String?    @db.ObjectId
+  sendingUserName        String?    @db.String
+  sendingHospitalId      String?    @db.ObjectId
+  sendingHospitalName    String?    @db.String
+  sendingBloodBankId     String?    @db.ObjectId
+  sendingBloodBankName   String?    @db.String
+  content                String     @db.String
+  status                 String     @default("Unseen") @db.String
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
+  receivingBloodBankId   String?    @db.ObjectId
+  receivingBloodBankName String?    @db.String
+  bloodBank              BloodBank? @relation(fields: [receivingBloodBankId], references: [id])
+  receivingHospitalId    String?    @db.ObjectId
+  receivingHospitalName  String?    @db.String
+  hospital               Hospital?  @relation(fields: [receivingHospitalId], references: [id])
+  type                   String     @default("Hospital Application") @db.String
 }
