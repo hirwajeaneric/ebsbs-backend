@@ -9,6 +9,7 @@ import {
     getNotificationsSentByHospital, 
     setToSeen
 } from '../controllers/notification.controller';
+
 const notificationRouter = express.Router();
 
 notificationRouter.post('/add', createNotification);

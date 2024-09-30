@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { startOfMonth, endOfMonth, startOfDay, endOfDay } from 'date-fns'; // For handling date manipulations
 
 import asyncWrapper from '../middlewares/AsyncWrapper';
 import prisma from "../db/client";
@@ -120,7 +121,76 @@ export const adminOverviewData = asyncWrapper(async (req: Request, res: Response
     const hospitals = await prisma.hospital.findMany({ where: { accessStatus: "Active" }})
     const applications = await prisma.hospital.findMany({ where: { accessStatus: "Inactive" }});
     const bloodBankUsers = await prisma.bloodBankRecorder.findMany({ where: { bloodBankId: bloodBankId }});
-    const notifications: any = [];
+    const notifications = await prisma.notification.findMany({ where: { receivingBloodBankId: bloodBankId } });
     
     res.status(200).json({ hospitals, applications, notifications, users: bloodBankUsers });
+});
+
+export const recorderOverviewData = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
+    const bloodBankId = req.query.id as string;
+
+    // Extract filters from the query parameters
+    const { month, year, startDate, endDate } = req.query;
+
+    // Set default values for the month and year (current month/year)
+    const now = new Date();
+    const selectedMonth = month ? Number(month) - 1 : now.getMonth(); // JS months are 0-based, so subtract 1
+    const selectedYear = year ? Number(year) : now.getFullYear();
+
+    // Determine the range of dates based on the input (start-end dates or month/year)
+    let dateRangeStart: Date;
+    let dateRangeEnd: Date;
+
+    if (startDate && endDate) {
+        // If startDate and endDate are provided, use them to filter
+        dateRangeStart = startOfDay(new Date(startDate as string));
+        dateRangeEnd = endOfDay(new Date(endDate as string));
+    } else {
+        // Otherwise, use the month/year to determine the date range
+        dateRangeStart = startOfMonth(new Date(selectedYear, selectedMonth));
+        dateRangeEnd = endOfMonth(new Date(selectedYear, selectedMonth));
+    }
+
+    // Fetch filtered blood requests for the specified blood bank, within the date range
+    const requestsReceived = await prisma.bloodRequest.findMany({
+        where: {
+            bloodBankId: bloodBankId,
+            createdAt: {
+                gte: dateRangeStart,
+                lte: dateRangeEnd,
+            },
+        },
+        orderBy: {
+            createdAt: 'asc', // Sort by creation date (ascending)
+        },
+    });
+
+    // Fetch blood bags in the blood bank within the date range
+    const allBloodBagsInBloodBank = await prisma.bloodBag.findMany({
+        where: {
+            bloodBankId: bloodBankId,
+            createdAt: {
+                gte: dateRangeStart,
+                lte: dateRangeEnd,
+            },
+        },
+        orderBy: {
+            createdAt: 'asc', // Sort by creation date (ascending)
+        },
+    });
+
+    // Fetch notifications related to the blood bank
+    const notifications = await prisma.notification.findMany({ where: { receivingBloodBankId: bloodBankId } });
+
+    res.status(200).json({
+        requests: requestsReceived,
+        bloodBags: allBloodBagsInBloodBank,
+        notifications,
+        filters: {
+            month: selectedMonth + 1, // Convert 0-based month back to 1-based
+            year: selectedYear,
+            dateRangeStart,
+            dateRangeEnd,
+        },
+    });
 });
