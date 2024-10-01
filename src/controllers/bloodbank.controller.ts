@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { startOfMonth, endOfMonth, startOfDay, endOfDay } from 'date-fns'; // For handling date manipulations
+import { startOfMonth, endOfMonth, format, startOfDay, endOfDay, eachDayOfInterval, getDaysInMonth, startOfYear } from 'date-fns'; // For handling date manipulations
 
 import asyncWrapper from '../middlewares/AsyncWrapper';
 import prisma from "../db/client";
@@ -30,7 +30,7 @@ export const updateBloodBank = asyncWrapper(async (req: Request, res: Response, 
     if (!existingBloodBankData) {
         return res.status(404).json({ message: 'Blood bank not found' });
     }
-    
+
     const updatedData = {
         name: req.body.name || existingBloodBankData.name,
         googleLocation: req.body.googleLocation || existingBloodBankData.googleLocation,
@@ -93,13 +93,13 @@ export const updateBloodBank = asyncWrapper(async (req: Request, res: Response, 
         where: { id: req.query.id as string },
         data: updatedData
     });
-    
+
     res.status(200).json({ message: 'Blood bank updated successfully', bloodBank });
 });
 
 
 export const getBloodBank = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
-    const bloodBank = await prisma.bloodBank.findFirst({ where: { id: req.query.id as string }});
+    const bloodBank = await prisma.bloodBank.findFirst({ where: { id: req.query.id as string } });
     if (!bloodBank) { return res.status(404).json({ message: 'Blood bank not found' }) }
     res.status(200).json({ bloodBank });
 });
@@ -110,19 +110,19 @@ export const getAllBloodBanks = asyncWrapper(async (req: Request, res: Response,
 });
 
 export const deleteBloodBank = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
-    await prisma.bloodBank.delete({ where: { id: req.query.id as string }});
+    await prisma.bloodBank.delete({ where: { id: req.query.id as string } });
 
-    res.status(200).json({ message: 'Blood bank deleted successfully'});
+    res.status(200).json({ message: 'Blood bank deleted successfully' });
 });
 
 export const adminOverviewData = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
     const bloodBankId = req.query.id as string;
-    
-    const hospitals = await prisma.hospital.findMany({ where: { accessStatus: "Active" }})
-    const applications = await prisma.hospital.findMany({ where: { accessStatus: "Inactive" }});
-    const bloodBankUsers = await prisma.bloodBankRecorder.findMany({ where: { bloodBankId: bloodBankId }});
+
+    const hospitals = await prisma.hospital.findMany({ where: { accessStatus: "Active" } })
+    const applications = await prisma.hospital.findMany({ where: { accessStatus: "Inactive" } });
+    const bloodBankUsers = await prisma.bloodBankRecorder.findMany({ where: { bloodBankId: bloodBankId } });
     const notifications = await prisma.notification.findMany({ where: { receivingBloodBankId: bloodBankId } });
-    
+
     res.status(200).json({ hospitals, applications, notifications, users: bloodBankUsers });
 });
 
@@ -132,38 +132,86 @@ export const recorderOverviewData = asyncWrapper(async (req: Request, res: Respo
     // Extract filters from the query parameters
     const { month, year, startDate, endDate } = req.query;
 
-    // Set default values for the month and year (current month/year)
+    // Set default values for the current month and year
     const now = new Date();
-    const selectedMonth = month ? Number(month) - 1 : now.getMonth(); // JS months are 0-based, so subtract 1
+    const selectedMonth = month ? Number(month) - 1 : undefined; // JS months are 0-based
     const selectedYear = year ? Number(year) : now.getFullYear();
 
-    // Determine the range of dates based on the input (start-end dates or month/year)
+    // Function to count requests per day or month for chart data
+    const countRequestsForChart = (requests: any[], groupBy: 'month' | 'day'): { month: string; request: number; }[] | { day: string; request: number; }[] => {
+        if (groupBy === 'month') {
+            // Group requests by month
+            const monthCounts = Array.from({ length: 12 }, (_, i) => ({
+                month: format(new Date(selectedYear, i), 'MMMM'),
+                request: 0,
+            }));
+
+            requests.forEach(request => {
+                const month = new Date(request.createdAt).getMonth();
+                monthCounts[month].request += 1;
+            });
+
+            return monthCounts;
+        } else {
+            // Group requests by day
+            const daysInSelectedMonth = getDaysInMonth(new Date(selectedYear, selectedMonth as number));
+            const dayCounts = Array.from({ length: daysInSelectedMonth }, (_, i) => ({
+                day: (i + 1).toString(),
+                request: 0,
+            }));
+
+            requests.forEach(request => {
+                const day = new Date(request.createdAt).getDate() - 1;
+                dayCounts[day].request += 1;
+            });
+
+            return dayCounts;
+        }
+    };
+
+    // Fetch requests based on the selected date range
+    let requestsReceived;
+    let chartData: { month: string; request: number; }[] | { day: string; request: number; }[] = [];
+    let startOfYear: Date = new Date(selectedYear, 0, 1);
+    let endOfYear: Date = new Date(selectedYear, 11, 31);
     let dateRangeStart: Date;
     let dateRangeEnd: Date;
 
-    if (startDate && endDate) {
-        // If startDate and endDate are provided, use them to filter
-        dateRangeStart = startOfDay(new Date(startDate as string));
-        dateRangeEnd = endOfDay(new Date(endDate as string));
+    if (selectedMonth === undefined) {
+        // No specific month, get data for the entire year
+        dateRangeStart = startOfYear;
+        dateRangeEnd = endOfYear;
+
+        requestsReceived = await prisma.bloodRequest.findMany({
+            where: {
+                bloodBankId: bloodBankId,
+                createdAt: {
+                    gte: dateRangeStart,
+                    lte: dateRangeEnd,
+                },
+            },
+        });
+
+        // Group requests by month for chart data
+        chartData = countRequestsForChart(requestsReceived, 'month');
     } else {
-        // Otherwise, use the month/year to determine the date range
+        // A specific month is selected
         dateRangeStart = startOfMonth(new Date(selectedYear, selectedMonth));
         dateRangeEnd = endOfMonth(new Date(selectedYear, selectedMonth));
-    }
 
-    // Fetch filtered blood requests for the specified blood bank, within the date range
-    const requestsReceived = await prisma.bloodRequest.findMany({
-        where: {
-            bloodBankId: bloodBankId,
-            createdAt: {
-                gte: dateRangeStart,
-                lte: dateRangeEnd,
+        requestsReceived = await prisma.bloodRequest.findMany({
+            where: {
+                bloodBankId: bloodBankId,
+                createdAt: {
+                    gte: dateRangeStart,
+                    lte: dateRangeEnd,
+                },
             },
-        },
-        orderBy: {
-            createdAt: 'asc', // Sort by creation date (ascending)
-        },
-    });
+        });
+
+        // Group requests by day for chart data
+        chartData = countRequestsForChart(requestsReceived, 'day');
+    }
 
     // Fetch blood bags in the blood bank within the date range
     const allBloodBagsInBloodBank = await prisma.bloodBag.findMany({
@@ -182,12 +230,14 @@ export const recorderOverviewData = asyncWrapper(async (req: Request, res: Respo
     // Fetch notifications related to the blood bank
     const notifications = await prisma.notification.findMany({ where: { receivingBloodBankId: bloodBankId } });
 
+    // Send response
     res.status(200).json({
         requests: requestsReceived,
         bloodBags: allBloodBagsInBloodBank,
         notifications,
+        chartData: chartData,
         filters: {
-            month: selectedMonth + 1, // Convert 0-based month back to 1-based
+            month: selectedMonth !== undefined ? selectedMonth + 1 : undefined, // Convert 0-based month back to 1-based
             year: selectedYear,
             dateRangeStart,
             dateRangeEnd,
