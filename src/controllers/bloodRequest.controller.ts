@@ -532,6 +532,11 @@ export const findRequestById = asyncWrapper(async (req: Request, res: Response, 
 
     const bloodRequest = await prisma.bloodRequest.findUnique({
         where: { id: id as string },
+        include: {
+            hospital: true,
+            bloodBank: true,
+            otherHospital: true
+        }
     });
 
     if (!bloodRequest) {
@@ -545,7 +550,14 @@ export const findRequestsByHospitalId = asyncWrapper(async (req: Request, res: R
     const { hospitalId } = req.query;
 
     const bloodRequests = await prisma.bloodRequest.findMany({
-        where: { hospitalId: hospitalId as string }
+        where: { 
+            hospitalId: hospitalId as string 
+        },
+        include: {
+            hospital: true,
+            bloodBank: true,
+            otherHospital: true
+        }
     });
 
     if (!bloodRequests.length) {
@@ -559,11 +571,18 @@ export const findReceivedRequestsByHospitalId = asyncWrapper(async (req: Request
     const { hospitalId } = req.query;
 
     const bloodRequests = await prisma.bloodRequest.findMany({
-        where: { idOfOtherHospital: hospitalId as string }
+        where: { 
+            idOfOtherHospital: hospitalId as string 
+        },
+        include: {
+            hospital: true,
+            bloodBank: true,
+            otherHospital: true
+        }
     });
 
     if (!bloodRequests.length) {
-        return res.status(404).json({ message: 'No blood requests found for this hospital' });
+        return res.status(404).json({ bloodRequests: [] });
     }
 
     res.status(200).json({ bloodRequests });
@@ -573,11 +592,16 @@ export const findRequestsByBloodBankId = asyncWrapper(async (req: Request, res: 
     const { bloodBankId } = req.query;
 
     const bloodRequests = await prisma.bloodRequest.findMany({
-        where: { bloodBankId: bloodBankId as string }
+        where: { bloodBankId: bloodBankId as string },
+        include: {
+            hospital: true,
+            bloodBank: true,
+            otherHospital: true
+        }
     });
 
     if (!bloodRequests.length) {
-        return res.status(404).json({ message: 'No blood requests found for this blood bank' });
+        return res.status(404).json({ message: [] });
     }
 
     res.status(200).json({ bloodRequests });

@@ -123,7 +123,7 @@ export const createNotification = asyncWrapper(async (req: Request, res: Respons
 
 // Get all notifications
 export const getAllNotifications = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
-    const notifications = await prisma.notification.findMany();
+    const notifications = await prisma.notification.findMany({ orderBy: { createdAt: "desc" }});
     res.status(200).json({ notifications });
 });
 
@@ -141,7 +141,8 @@ export const getNotificationsByBloodBank = asyncWrapper(async (req: Request, res
     const { bloodBankId } = req.query;
 
     const notifications = await prisma.notification.findMany({
-        where: { receivingBloodBankId: bloodBankId as string}
+        where: { receivingBloodBankId: bloodBankId as string},
+        orderBy: { createdAt: "desc" }
     });
 
     res.status(200).json({ notifications });
@@ -152,7 +153,8 @@ export const getNotificationsByHospital = asyncWrapper(async (req: Request, res:
     const { hospitalId } = req.query;
 
     const notifications = await prisma.notification.findMany({
-        where: { receivingHospitalId: hospitalId as string }
+        where: { receivingHospitalId: hospitalId as string },
+        orderBy: { createdAt: "desc" }
     });
 
     res.status(200).json({ notifications });
@@ -163,7 +165,8 @@ export const getNotificationsSentByHospital = asyncWrapper(async (req: Request, 
     const { hospitalId } = req.query;
 
     const notifications = await prisma.notification.findMany({
-        where: { sendingHospitalId: hospitalId as string }
+        where: { sendingHospitalId: hospitalId as string },
+        orderBy: { createdAt: "desc" }
     });
 
     res.status(200).json({ notifications });
@@ -174,7 +177,8 @@ export const getNotificationsSentByBloodBank = asyncWrapper(async (req: Request,
     const { bloodBankId } = req.query;
 
     const notifications = await prisma.notification.findMany({
-        where: { sendingBloodBankId: bloodBankId as string }
+        where: { sendingBloodBankId: bloodBankId as string },
+        orderBy: { createdAt: "desc" }
     });
 
     res.status(200).json({ notifications });

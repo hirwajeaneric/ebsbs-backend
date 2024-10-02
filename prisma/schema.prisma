@@ -90,7 +90,7 @@ model Hospital {
   updatedAt      DateTime @updatedAt
 
   workers  HospitalWorker[]
-  requests BloodRequest[]
+  // requests BloodRequest[]
 
   rhP_O          Int @default(0)
   rhP_A          Int @default(0)
@@ -126,8 +126,9 @@ model Hospital {
   rbcN_AB        Int @default(0)
 
   BloodInTransaction BloodInTransaction[]
-
   Notification Notification[]
+  BloodRequest BloodRequest[] @relation("RequestingHospital")
+  OtherBloodRequest BloodRequest[] @relation("OtherHospital")
 }
 
 model BloodBank {
@@ -177,9 +178,8 @@ model BloodBank {
   rbcN_A            Int                 @default(0)
   rbcN_B            Int                 @default(0)
   rbcN_AB           Int                 @default(0)
-  BloodBankRecorder BloodBankRecorder[]
-
-  Notification Notification[]
+  bloodBankRecorders BloodBankRecorder[]
+  notifications Notification[]
 }
 
 model BloodInTransaction {
@@ -268,6 +268,7 @@ model BloodRequest {
   id                String   @id @default(auto()) @map("_id") @db.ObjectId
   hospitalId        String   @db.ObjectId
   idOfOtherHospital String?  @db.ObjectId
+  bloodBankId       String?  @db.ObjectId
   status            String   @default("Pending")
   rhP_O             Int      @db.Int
   rhP_A             Int      @db.Int
@@ -304,9 +305,9 @@ model BloodRequest {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  hospital    Hospital   @relation(fields: [hospitalId], references: [id])
-  BloodBank   BloodBank? @relation(fields: [bloodBankId], references: [id])
-  bloodBankId String?    @db.ObjectId
+  hospital      Hospital   @relation("RequestingHospital", fields: [hospitalId], references: [id])
+  otherHospital Hospital?  @relation("OtherHospital", fields: [idOfOtherHospital], references: [id])
+  bloodBank     BloodBank? @relation(fields: [bloodBankId], references: [id])
 }
 
 model Admin {
@@ -332,7 +333,7 @@ model Notification {
   sendingBloodBankId     String?    @db.ObjectId
   sendingBloodBankName   String?    @db.String
   content                String     @db.String
-  link                   String?     @db.String
+  link                   String?    @db.String
   status                 String     @default("Unseen") @db.String
   createdAt              DateTime   @default(now())
   updatedAt              DateTime   @updatedAt

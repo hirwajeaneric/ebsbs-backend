@@ -188,8 +188,13 @@ export const recorderOverviewData = asyncWrapper(async (req: Request, res: Respo
                 createdAt: {
                     gte: dateRangeStart,
                     lte: dateRangeEnd,
-                },
+                }
             },
+            include: {
+                bloodBank: true,
+                hospital: true,
+                otherHospital: true
+            }
         });
 
         // Group requests by month for chart data
@@ -207,6 +212,11 @@ export const recorderOverviewData = asyncWrapper(async (req: Request, res: Respo
                     lte: dateRangeEnd,
                 },
             },
+            include: {
+                bloodBank: true,
+                hospital: true,
+                otherHospital: true
+            }
         });
 
         // Group requests by day for chart data
@@ -227,14 +237,24 @@ export const recorderOverviewData = asyncWrapper(async (req: Request, res: Respo
         },
     });
 
-    // Fetch notifications related to the blood bank
-    const notifications = await prisma.notification.findMany({ where: { receivingBloodBankId: bloodBankId } });
+    // Blood Bank
+    const bloodBank = await prisma.bloodBank.findFirst({ 
+        where: { 
+            id: bloodBankId 
+        },
+        include: {
+            bloodOutTransactions: true,
+            notifications: true,
+        } 
+    });
 
     // Send response
     res.status(200).json({
         requests: requestsReceived,
         bloodBags: allBloodBagsInBloodBank,
-        notifications,
+        bloodBank: bloodBank,
+        bloodOutTransactions: bloodBank?.bloodOutTransactions,
+        notifications: bloodBank?.notifications,
         chartData: chartData,
         filters: {
             month: selectedMonth !== undefined ? selectedMonth + 1 : undefined, // Convert 0-based month back to 1-based
