@@ -125,10 +125,10 @@ model Hospital {
   rbcN_B         Int @default(0)
   rbcN_AB        Int @default(0)
 
-  BloodInTransaction BloodInTransaction[]
-  Notification Notification[]
-  BloodRequest BloodRequest[] @relation("RequestingHospital")
-  OtherBloodRequest BloodRequest[] @relation("OtherHospital")
+  bloodInTransactions BloodInTransaction[]
+  notifications Notification[]
+  bloodRequests BloodRequest[] @relation("RequestingHospital")
+  otherBloodRequests BloodRequest[] @relation("OtherHospital")
 }
 
 model BloodBank {

@@ -190,6 +190,8 @@ export const updateBloodRequest = asyncWrapper(async (req: Request, res: Respons
         rbcN_AB
     } = req.body;
 
+    console.log(req.body)
+
     // Find the blood request by ID
     const existingBloodRequest = await prisma.bloodRequest.findUnique({ where: { id: id as string } });
     if (!existingBloodRequest) { return res.status(404).json({ message: 'Blood request not found' }) }
@@ -436,14 +438,15 @@ export const updateBloodRequest = asyncWrapper(async (req: Request, res: Respons
         }
 
         if (idOfOtherHospital) {
-            const hospital = await prisma.hospital.findUnique({ where: { id: idOfOtherHospital } });
-            if (!hospital) {
-                throw new Error("Invalid hospital ID");
-            }
+            // const hospital = await prisma.hospital.findUnique({ where: { id: idOfOtherHospital } });
+            // if (!hospital) {
+            //     throw new Error("Invalid hospital ID");
+            // }
             // console.log("Borrowed Hospital");
             // console.log(hospital);
             // console.log("Id of this hospital");
-            // console.log(idOfOtherHospital);
+            console.log("IdOfOtherHospital");
+            console.log(idOfOtherHospital);
             
             await prisma.hospital.update({
                 where: { id: idOfOtherHospital },

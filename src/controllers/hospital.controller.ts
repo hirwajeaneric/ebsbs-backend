@@ -225,3 +225,14 @@ export const searchHospitalsByBlood = asyncWrapper(async (req: Request, res: Res
 
     res.status(200).json({ hospitals });
 });
+
+export const adminOverviewData = asyncWrapper(async(req: Request, res: Response, next: NextFunction) => {
+    const hospital = await prisma.hospital.findUnique({
+        where: {
+            id: req.query.id as string
+        },
+        include: {
+            notifications: true
+        }
+    });
+})
