@@ -89,7 +89,7 @@ model Hospital {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  workers  HospitalWorker[]
+  workers HospitalWorker[]
   // requests BloodRequest[]
 
   rhP_O          Int @default(0)
@@ -126,9 +126,9 @@ model Hospital {
   rbcN_AB        Int @default(0)
 
   bloodInTransactions BloodInTransaction[]
-  notifications Notification[]
-  bloodRequests BloodRequest[] @relation("RequestingHospital")
-  otherBloodRequests BloodRequest[] @relation("OtherHospital")
+  notifications       Notification[]
+  bloodRequests       BloodRequest[]       @relation("RequestingHospital")
+  otherBloodRequests  BloodRequest[]       @relation("OtherHospital")
 }
 
 model BloodBank {
@@ -146,40 +146,40 @@ model BloodBank {
   bloodOutTransactions BloodOutTransaction[]
   requests             BloodRequest[]
 
-  rhP_O             Int                 @default(0)
-  rhP_A             Int                 @default(0)
-  rhP_B             Int                 @default(0)
-  rhP_AB            Int                 @default(0)
-  rhN_O             Int                 @default(0)
-  rhN_A             Int                 @default(0)
-  rhN_B             Int                 @default(0)
-  rhN_AB            Int                 @default(0)
-  plasmaRhP_O       Int                 @default(0)
-  plasmaRhP_A       Int                 @default(0)
-  plasmaRhP_B       Int                 @default(0)
-  plasmaRhP_AB      Int                 @default(0)
-  plasmaRhN_O       Int                 @default(0)
-  plasmaRhN_A       Int                 @default(0)
-  plasmaRhN_B       Int                 @default(0)
-  plasmaRhN_AB      Int                 @default(0)
-  plateletRhP_O     Int                 @default(0)
-  plateletRhP_A     Int                 @default(0)
-  plateletRhP_B     Int                 @default(0)
-  plateletRhP_AB    Int                 @default(0)
-  plateletRhN_O     Int                 @default(0)
-  plateletRhN_A     Int                 @default(0)
-  plateletRhN_B     Int                 @default(0)
-  plateletRhN_AB    Int                 @default(0)
-  rbcP_O            Int                 @default(0)
-  rbcP_A            Int                 @default(0)
-  rbcP_B            Int                 @default(0)
-  rbcP_AB           Int                 @default(0)
-  rbcN_O            Int                 @default(0)
-  rbcN_A            Int                 @default(0)
-  rbcN_B            Int                 @default(0)
-  rbcN_AB           Int                 @default(0)
+  rhP_O              Int                 @default(0)
+  rhP_A              Int                 @default(0)
+  rhP_B              Int                 @default(0)
+  rhP_AB             Int                 @default(0)
+  rhN_O              Int                 @default(0)
+  rhN_A              Int                 @default(0)
+  rhN_B              Int                 @default(0)
+  rhN_AB             Int                 @default(0)
+  plasmaRhP_O        Int                 @default(0)
+  plasmaRhP_A        Int                 @default(0)
+  plasmaRhP_B        Int                 @default(0)
+  plasmaRhP_AB       Int                 @default(0)
+  plasmaRhN_O        Int                 @default(0)
+  plasmaRhN_A        Int                 @default(0)
+  plasmaRhN_B        Int                 @default(0)
+  plasmaRhN_AB       Int                 @default(0)
+  plateletRhP_O      Int                 @default(0)
+  plateletRhP_A      Int                 @default(0)
+  plateletRhP_B      Int                 @default(0)
+  plateletRhP_AB     Int                 @default(0)
+  plateletRhN_O      Int                 @default(0)
+  plateletRhN_A      Int                 @default(0)
+  plateletRhN_B      Int                 @default(0)
+  plateletRhN_AB     Int                 @default(0)
+  rbcP_O             Int                 @default(0)
+  rbcP_A             Int                 @default(0)
+  rbcP_B             Int                 @default(0)
+  rbcP_AB            Int                 @default(0)
+  rbcN_O             Int                 @default(0)
+  rbcN_A             Int                 @default(0)
+  rbcN_B             Int                 @default(0)
+  rbcN_AB            Int                 @default(0)
   bloodBankRecorders BloodBankRecorder[]
-  notifications Notification[]
+  notifications      Notification[]
 }
 
 model BloodInTransaction {
@@ -217,6 +217,7 @@ model BloodInTransaction {
   rbcN_A         Int       @db.Int
   rbcN_B         Int       @db.Int
   rbcN_AB        Int       @db.Int
+  requestId      String?    @db.ObjectId
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   Hospital       Hospital? @relation(fields: [hospitalId], references: [id])

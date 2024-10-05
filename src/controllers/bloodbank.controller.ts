@@ -134,7 +134,7 @@ export const recorderOverviewData = asyncWrapper(async (req: Request, res: Respo
 
     // Set default values for the current month and year
     const now = new Date();
-    const selectedMonth = month ? Number(month) - 1 : undefined; // JS months are 0-based
+    const selectedMonth = month ? Number(month) : undefined; // JS months are 0-based
     const selectedYear = year ? Number(year) : now.getFullYear();
 
     // Function to count requests per day or month for chart data
@@ -257,7 +257,7 @@ export const recorderOverviewData = asyncWrapper(async (req: Request, res: Respo
         notifications: bloodBank?.notifications,
         chartData: chartData,
         filters: {
-            month: selectedMonth !== undefined ? selectedMonth + 1 : undefined, // Convert 0-based month back to 1-based
+            month: selectedMonth !== undefined ? selectedMonth : undefined, // Convert 0-based month back to 1-based
             year: selectedYear,
             dateRangeStart,
             dateRangeEnd,

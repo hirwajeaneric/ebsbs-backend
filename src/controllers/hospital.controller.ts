@@ -246,3 +246,101 @@ export const getAdminOverviewData = asyncWrapper(async(req: Request, res: Respon
 
     res.status(200).json({ message: "Success", hospital });
 })
+
+export const getLabTechnitiansOverviewData = asyncWrapper(async(req: Request, res: Response, next: NextFunction) => {
+    const hospitalId = req.query.id as string;
+
+    // Extract filters from the query parameters
+    const { month, year } = req.query;
+
+    // Set default values for the current month and year
+    const now = new Date();
+    const selectedMonth = month ? Number(month) : undefined; // JS months are 0-based
+    const selectedYear = year ? Number(year) : now.getFullYear();
+    
+    let bloodInTransactions;
+    let receivedBloodRequests;
+    let startOfYear: Date = new Date(selectedYear, 0, 1);
+    let endOfYear: Date = new Date(selectedYear, 11, 31);
+    let dateRangeStart: Date;
+    let dateRangeEnd: Date;
+
+    if (selectedMonth === undefined) {
+        // No specific month, get data for the entire year
+        dateRangeStart = startOfYear;
+        dateRangeEnd = endOfYear;
+
+        bloodInTransactions = await prisma.bloodInTransaction.findMany({
+            where: {
+                hospitalId: hospitalId,
+                createdAt: {
+                    gte: dateRangeStart,
+                    lte: dateRangeEnd
+                }
+            }
+        });
+
+        receivedBloodRequests = await prisma.bloodRequest.findMany({
+            where: { 
+                hospitalId: hospitalId, 
+                createdAt: { 
+                    gte: dateRangeStart, 
+                    lte: dateRangeEnd 
+                } 
+            }
+        });
+    } else {
+        // Calculate the start and end dates for the selected month
+        const startOfMonth = new Date(selectedYear, selectedMonth, 1);
+        const endOfMonth = new Date(selectedYear, selectedMonth + 1, 0);
+        dateRangeStart = startOfMonth;
+        dateRangeEnd = endOfMonth;
+
+        bloodInTransactions = await prisma.bloodInTransaction.findMany({
+            where: {
+                hospitalId: hospitalId,
+                createdAt: {
+                    gte: dateRangeStart,
+                    lte: dateRangeEnd
+                }
+            }
+        });
+
+        receivedBloodRequests = await prisma.bloodRequest.findMany({
+            where: { 
+                hospitalId: hospitalId, 
+                createdAt: { 
+                    gte: dateRangeStart, 
+                    lte: dateRangeEnd 
+                } 
+            }
+        });
+    }
+
+    const hospital = await prisma.hospital.findUnique({
+        where: {
+            id: hospitalId
+        },
+        include: {
+            notifications: true,
+            workers: true,
+            bloodRequests: true,
+            bloodInTransactions: true
+        }
+    });
+    
+    if (!hospital) {
+        return res.status(404).json({ message: "Hospital not found" });
+    }
+
+    res.status(200).json({ 
+        message: "Success", 
+        hospital,
+        bloodInTransactions, 
+        receivedBloodRequests,
+        filters: {
+            month: selectedMonth !== undefined ? selectedMonth  : undefined, // Convert 0-based month back to 1-based 
+            year: selectedYear 
+        } 
+    });  
+})

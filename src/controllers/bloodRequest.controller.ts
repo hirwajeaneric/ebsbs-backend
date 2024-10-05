@@ -389,6 +389,7 @@ export const updateBloodRequest = asyncWrapper(async (req: Request, res: Respons
                 rbcN_A: existingBloodRequest.rbcN_A,
                 rbcN_B: existingBloodRequest.rbcN_B,
                 rbcN_AB: existingBloodRequest.rbcN_AB,
+                requestId: existingBloodRequest.id
             }
         });
 
@@ -442,13 +443,10 @@ export const updateBloodRequest = asyncWrapper(async (req: Request, res: Respons
             // if (!hospital) {
             //     throw new Error("Invalid hospital ID");
             // }
-            // console.log("Borrowed Hospital");
-            // console.log(hospital);
-            // console.log("Id of this hospital");
             console.log("IdOfOtherHospital");
             console.log(idOfOtherHospital);
             
-            await prisma.hospital.update({
+            const updatedHospital = await prisma.hospital.update({
                 where: { id: idOfOtherHospital },
                 data: {
                     rhP_O: hospital.rhP_O - existingBloodRequest.rhP_O,
@@ -484,7 +482,10 @@ export const updateBloodRequest = asyncWrapper(async (req: Request, res: Respons
                     rbcN_B: hospital.rbcN_B - existingBloodRequest.rbcN_B,
                     rbcN_AB: hospital.rbcN_AB - existingBloodRequest.rbcN_AB,
                 }
-            })
+            });
+
+            console.log("Updated Hospital");
+            console.log(updatedHospital);
         }
 
         // Update Hospital Stock by adding the incoming stock
