@@ -226,13 +226,23 @@ export const searchHospitalsByBlood = asyncWrapper(async (req: Request, res: Res
     res.status(200).json({ hospitals });
 });
 
-export const adminOverviewData = asyncWrapper(async(req: Request, res: Response, next: NextFunction) => {
+export const getAdminOverviewData = asyncWrapper(async(req: Request, res: Response, next: NextFunction) => {
+    const hospitalId = req.query.id as string;
     const hospital = await prisma.hospital.findUnique({
         where: {
-            id: req.query.id as string
+            id: hospitalId
         },
         include: {
-            notifications: true
+            notifications: true,
+            workers: true,
+            bloodRequests: true,
+            bloodInTransactions: true
         }
     });
+    
+    if (!hospital) {
+        return res.status(404).json({ message: "Hospital not found" });
+    }
+
+    res.status(200).json({ message: "Success", hospital });
 })
