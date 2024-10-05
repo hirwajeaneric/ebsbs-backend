@@ -85,6 +85,9 @@ export const createRequest = asyncWrapper(async (req: Request, res: Response, ne
             rbcN_B: Number(rbcN_B) || 0,
             rbcN_AB: Number(rbcN_AB) || 0,
             status: "Pending", // Default status is "pending"
+        },
+        include: {
+            hospital: true,
         }
     });
 
@@ -105,8 +108,8 @@ export const createRequest = asyncWrapper(async (req: Request, res: Response, ne
 
     if (bloodRequest.idOfOtherHospital !== null) {
         hospitalToReceiveRequest = await prisma.hospital.findFirst({ where: { id: bloodRequest.idOfOtherHospital }});    
-        message =  `New Blood Request received from ${hospitalThatSentRequest?.name}. \nClick on the link bellow to view details`
-        link = `${process.env.CLIENT_URL}/hdash/${hospitalToReceiveRequest?.id}/r/requests/incoming/${bloodRequest.id}`
+        message =  `New Blood Request received from ${bloodRequest.hospital?.name}. \nClick on the link bellow to view details`
+        link = `${process.env.CLIENT_URL}/hdash/${bloodRequest.hospital?.id}/r/requests/incoming/${bloodRequest.id}`
         receivingHospitalId = hospitalToReceiveRequest?.id;
         receivingHospitalName = hospitalToReceiveRequest?.name;
     } else if (bloodRequest.bloodBankId !== null) {
