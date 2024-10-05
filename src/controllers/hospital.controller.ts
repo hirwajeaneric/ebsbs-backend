@@ -210,8 +210,9 @@ export const searchHospitalsByBlood = asyncWrapper(async (req: Request, res: Res
         return res.status(400).json({ message: "Invalid blood type" });
     }
 
+    let hospitals: any[] = [];
     // Query hospitals that have the requested blood type and meet the blood quality condition
-    const hospitals = await prisma.hospital.findMany({
+    hospitals = await prisma.hospital.findMany({
         where: {
             [bloodField]: {
                 gt: 0, // Ensure there is available stock
@@ -220,7 +221,7 @@ export const searchHospitalsByBlood = asyncWrapper(async (req: Request, res: Res
     });
 
     if (!hospitals.length) {
-        return res.status(404).json({ message: "No hospitals found with the requested blood type and quality" });
+        hospitals = []
     }
 
     res.status(200).json({ hospitals });
