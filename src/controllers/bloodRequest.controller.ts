@@ -442,12 +442,12 @@ export const updateBloodRequest = asyncWrapper(async (req: Request, res: Respons
         }
 
         if (idOfOtherHospital) {
-            // const hospital = await prisma.hospital.findUnique({ where: { id: idOfOtherHospital } });
-            // if (!hospital) {
-            //     throw new Error("Invalid hospital ID");
-            // }
-            console.log("IdOfOtherHospital");
-            console.log(idOfOtherHospital);
+            const hospital = await prisma.hospital.findUnique({ where: { id: idOfOtherHospital } });
+            if (!hospital) {
+                throw new Error("Invalid hospital ID");
+            }
+            // console.log("IdOfOtherHospital");
+            // console.log(idOfOtherHospital);
             
             const updatedHospital = await prisma.hospital.update({
                 where: { id: idOfOtherHospital },
