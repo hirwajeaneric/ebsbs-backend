@@ -261,6 +261,7 @@ export const getLabTechnitiansOverviewData = asyncWrapper(async(req: Request, re
     
     let bloodInTransactions;
     let receivedBloodRequests;
+    let sentBloodRequests;
     let startOfYear: Date = new Date(selectedYear, 0, 1);
     let endOfYear: Date = new Date(selectedYear, 11, 31);
     let dateRangeStart: Date;
@@ -283,13 +284,27 @@ export const getLabTechnitiansOverviewData = asyncWrapper(async(req: Request, re
 
         receivedBloodRequests = await prisma.bloodRequest.findMany({
             where: { 
-                hospitalId: hospitalId, 
+                idOfOtherHospital: hospitalId, 
                 createdAt: { 
                     gte: dateRangeStart, 
                     lte: dateRangeEnd 
                 } 
             }
         });
+
+        sentBloodRequests = await prisma.bloodRequest.findMany({
+            where: {
+                hospitalId: hospitalId,
+                createdAt: {
+                    gte: dateRangeStart,
+                    lte: dateRangeEnd
+                }
+            }
+        });
+    } else if (selectedMonth === 0) {
+        // January, get data for the previous year
+        dateRangeStart = new Date(selectedYear - 1, 0, 1);
+        dateRangeEnd = new Date(selectedYear - 1, 11, 31);
     } else {
         // Calculate the start and end dates for the selected month
         const startOfMonth = new Date(selectedYear, selectedMonth, 1);
@@ -309,11 +324,21 @@ export const getLabTechnitiansOverviewData = asyncWrapper(async(req: Request, re
 
         receivedBloodRequests = await prisma.bloodRequest.findMany({
             where: { 
-                hospitalId: hospitalId, 
+                idOfOtherHospital: hospitalId, 
                 createdAt: { 
                     gte: dateRangeStart, 
                     lte: dateRangeEnd 
                 } 
+            }
+        });
+
+        sentBloodRequests = await prisma.bloodRequest.findMany({
+            where: {
+                hospitalId: hospitalId,
+                createdAt: {
+                    gte: dateRangeStart,
+                    lte: dateRangeEnd
+                }
             }
         });
     }
@@ -325,8 +350,6 @@ export const getLabTechnitiansOverviewData = asyncWrapper(async(req: Request, re
         include: {
             notifications: true,
             workers: true,
-            bloodRequests: true,
-            bloodInTransactions: true
         }
     });
     
@@ -339,6 +362,7 @@ export const getLabTechnitiansOverviewData = asyncWrapper(async(req: Request, re
         hospital,
         bloodInTransactions, 
         receivedBloodRequests,
+        sentBloodRequests,
         filters: {
             month: selectedMonth !== undefined ? selectedMonth  : undefined, // Convert 0-based month back to 1-based 
             year: selectedYear 
