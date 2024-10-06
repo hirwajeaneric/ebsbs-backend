@@ -193,8 +193,6 @@ export const updateBloodRequest = asyncWrapper(async (req: Request, res: Respons
         rbcN_AB
     } = req.body;
 
-    console.log(req.body)
-
     // Find the blood request by ID
     const existingBloodRequest = await prisma.bloodRequest.findUnique({ where: { id: id as string } });
     if (!existingBloodRequest) { return res.status(404).json({ message: 'Blood request not found' }) }
@@ -204,8 +202,6 @@ export const updateBloodRequest = asyncWrapper(async (req: Request, res: Respons
         where: { id: id as string },
         data: {
             status: status || existingBloodRequest.status,
-            bloodBankId: bloodBankId !== "" ? bloodBankId : null,
-            idOfOtherHospital: idOfOtherHospital !== "" ? idOfOtherHospital : null,
             rhP_O: Number(rhP_O) || existingBloodRequest.rhP_O,
             rhP_A: Number(rhP_A) || existingBloodRequest.rhP_A,
             rhP_B: Number(rhP_B) || existingBloodRequest.rhP_B,
@@ -397,7 +393,7 @@ export const updateBloodRequest = asyncWrapper(async (req: Request, res: Respons
         });
 
         // Update BloodBank Stock by deducting
-        if (bloodBankId) {
+        if (existingBloodRequest.bloodBankId && existingBloodRequest.bloodBankId.length > 0) {
             const bloodBank = await prisma.bloodBank.findUnique({ where: { id: bloodBankId } });
             if (!bloodBank) {
                 throw new Error("Invalid blood bank ID");
@@ -441,16 +437,14 @@ export const updateBloodRequest = asyncWrapper(async (req: Request, res: Respons
             });
         }
 
-        if (idOfOtherHospital) {
-            const hospital = await prisma.hospital.findUnique({ where: { id: idOfOtherHospital } });
+        if (existingBloodRequest.idOfOtherHospital && existingBloodRequest.idOfOtherHospital.length > 0) {
+            const hospital = await prisma.hospital.findUnique({ where: { id: existingBloodRequest.idOfOtherHospital } });
             if (!hospital) {
                 throw new Error("Invalid hospital ID");
             }
-            // console.log("IdOfOtherHospital");
-            // console.log(idOfOtherHospital);
-            
+         
             const updatedHospital = await prisma.hospital.update({
-                where: { id: idOfOtherHospital },
+                where: { id: existingBloodRequest.idOfOtherHospital },
                 data: {
                     rhP_O: hospital.rhP_O - existingBloodRequest.rhP_O,
                     rhP_A: hospital.rhP_A - existingBloodRequest.rhP_A,
@@ -486,9 +480,6 @@ export const updateBloodRequest = asyncWrapper(async (req: Request, res: Respons
                     rbcN_AB: hospital.rbcN_AB - existingBloodRequest.rbcN_AB,
                 }
             });
-
-            console.log("Updated Hospital");
-            console.log(updatedHospital);
         }
 
         // Update Hospital Stock by adding the incoming stock
@@ -530,6 +521,15 @@ export const updateBloodRequest = asyncWrapper(async (req: Request, res: Respons
             }
         });
     }
+
+    await prisma.notification.create({
+        data: {
+            title: 'Blood request updated',
+            content: `Your blood request has been updated.`,
+            receivingHospitalId: existingBloodRequest.hospitalId,
+            link: `/hdash/${existingBloodRequest.hospitalId}/r/requests/sent/${existingBloodRequest.id}`,
+        }
+    })
 
     return res.status(200).json({ message: 'Blood request updated successfully', updatedRequest });
 });

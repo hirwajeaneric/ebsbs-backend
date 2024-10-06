@@ -3,6 +3,7 @@ import {
     createNotification, 
     deleteNotification, 
     getAllNotifications, 
+    getNotifcationsForAdmin, 
     getNotificationsByBloodBank, 
     getNotificationsByHospital, 
     getNotificationsSentByBloodBank, 
@@ -20,5 +21,6 @@ notificationRouter.get('/getNotificationsByHospital', getNotificationsByHospital
 notificationRouter.get('/getNotificationsSentByBloodBank', getNotificationsSentByBloodBank);
 notificationRouter.get('/getNotificationsSentByHospital', getNotificationsSentByHospital);
 notificationRouter.get('/changeToSeen', setToSeen);
+notificationRouter.get('/admin-notifications', getNotifcationsForAdmin);
 
 export default notificationRouter;

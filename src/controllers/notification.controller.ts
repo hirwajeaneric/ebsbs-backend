@@ -160,6 +160,14 @@ export const getNotificationsByHospital = asyncWrapper(async (req: Request, res:
     res.status(200).json({ notifications });
 });
 
+export const getNotifcationsForAdmin = asyncWrapper(async (req: Request, res: Response) => {
+    const notifications = await prisma.notification.findMany({ 
+        where: { type: "Hospital Application" },
+        orderBy: { createdAt: "desc" } 
+    });
+    res.status(200).json({ notifications });
+})
+
 // Get notifications sent by a specific hospital
 export const getNotificationsSentByHospital = asyncWrapper(async (req: Request, res: Response) => {
     const { hospitalId } = req.query;

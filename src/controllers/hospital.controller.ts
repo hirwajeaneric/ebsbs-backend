@@ -25,6 +25,22 @@ export const createHospital = asyncWrapper(async (req: Request, res: Response, n
         }
     });
 
+    const notification = {
+        title: 'New Hospital Application',
+        content: `A new hospital: ${hospital.name} has applied for access to the system.`,
+    }
+    
+    await prisma.notification.create({
+        data: {
+            title: notification.title,
+            content: notification.content,
+            sendingHospitalId: hospital.id,
+            sendingHospitalName: hospital.name,
+            receivingBloodBankId: null,            
+            link: `${process.env.CLIENT_URL}/dashboard/a/application/${hospital.id}/edit`,
+        }
+    })
+
     if (!updateAdminAccount) {
         return res.status(404).json({ message: 'Hospital admin not found' });
     }
