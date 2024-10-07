@@ -207,10 +207,10 @@ export const deleteHospital = asyncWrapper(async (req: Request, res: Response, n
     res.status(200).json({ message: 'Hospital deleted successfully' });
 });
 
-export const searchHospitalsByBlood = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
+export const searchHospitalsAndBloodBanksByBlood = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
     const { bloodType, bloodGroup, rhesis } = req.body;
 
-    // Define the column in the hospital table to check based on bloodType, bloodGroup, and Rhesis
+    // Define the column in both the hospital and blood bank tables to check based on bloodType, bloodGroup, and rhesis
     let bloodField;
     if (bloodType === "Plasma") {
         bloodField = `plasmaRh${rhesis}_${bloodGroup}`;
@@ -226,22 +226,75 @@ export const searchHospitalsByBlood = asyncWrapper(async (req: Request, res: Res
         return res.status(400).json({ message: "Invalid blood type" });
     }
 
-    let hospitals: any[] = [];
-    // Query hospitals that have the requested blood type and meet the blood quality condition
-    hospitals = await prisma.hospital.findMany({
+    // Query hospitals
+    const hospitals = await prisma.hospital.findMany({
         where: {
             [bloodField]: {
                 gt: 0, // Ensure there is available stock
             },
         },
+        select: {
+            id: true,
+            name: true,
+            googleLocation: true,
+            province: true,
+            town: true,
+            specialization: true,
+            hospitalType: true,
+            [bloodField]: true,  // Include blood count for the requested type
+        },
     });
 
-    if (!hospitals.length) {
-        hospitals = []
-    }
+    // Query blood banks
+    const bloodBanks = await prisma.bloodBank.findMany({
+        where: {
+            [bloodField]: {
+                gt: 0, // Ensure there is available stock
+            },
+        },
+        select: {
+            id: true,
+            name: true,
+            googleLocation: true,
+            province: true,
+            town: true,
+            email: true,
+            phone: true,
+            POBox: true,
+            [bloodField]: true,  // Include blood count for the requested type
+        },
+    });
 
-    res.status(200).json({ hospitals });
+    // Combine hospitals and blood banks results
+    const combinedResults = [
+        ...hospitals.map(hospital => ({
+            id: hospital.id,
+            type: 'hospital',
+            name: hospital.name,
+            googleLocation: hospital.googleLocation,
+            province: hospital.province,
+            town: hospital.town,
+            specialization: hospital.specialization,
+            hospitalType: hospital.hospitalType,
+            bloodCount: hospital[bloodField],
+        })),
+        ...bloodBanks.map(bloodBank => ({
+            id: bloodBank.id,
+            type: 'bloodBank',
+            name: bloodBank.name,
+            googleLocation: bloodBank.googleLocation,
+            province: bloodBank.province,
+            town: bloodBank.town,
+            email: bloodBank.email,
+            phone: bloodBank.phone,
+            POBox: bloodBank.POBox,
+            bloodCount: bloodBank[bloodField],
+        }))
+    ];
+
+    res.status(200).json({ results: combinedResults });
 });
+
 
 export const getAdminOverviewData = asyncWrapper(async(req: Request, res: Response, next: NextFunction) => {
     const hospitalId = req.query.id as string;
