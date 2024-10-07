@@ -37,6 +37,7 @@ export const createHospital = asyncWrapper(async (req: Request, res: Response, n
             sendingHospitalId: hospital.id,
             sendingHospitalName: hospital.name,
             receivingBloodBankId: null,            
+            type: 'Blood Request',
             link: `${process.env.CLIENT_URL}/dashboard/a/application/${hospital.id}/edit`,
         }
     })
