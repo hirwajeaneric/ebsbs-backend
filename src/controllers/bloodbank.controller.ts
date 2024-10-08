@@ -121,7 +121,7 @@ export const adminOverviewData = asyncWrapper(async (req: Request, res: Response
     const hospitals = await prisma.hospital.findMany({ where: { accessStatus: "Active" } })
     const applications = await prisma.hospital.findMany({ where: { accessStatus: "Inactive" } });
     const bloodBankUsers = await prisma.bloodBankRecorder.findMany({ where: { bloodBankId: bloodBankId } });
-    const notifications = await prisma.notification.findMany({ where: { receivingBloodBankId: bloodBankId } });
+    const notifications = await prisma.notification.findMany({ where: { type: 'Hospital Application' } });
 
     res.status(200).json({ hospitals, applications, notifications, users: bloodBankUsers });
 });
