@@ -19,7 +19,7 @@ export const sendEmail = (recipient: string, subject: string, body: string) => {
 
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-            console.error('Error sending email:', error);
+            console.log('Error sending email:', error);
         } else {
             console.log('Email sent:', info.response);
         }
