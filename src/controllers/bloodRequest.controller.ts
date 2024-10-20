@@ -114,7 +114,7 @@ export const createRequest = asyncWrapper(async (req: Request, res: Response, ne
         receivingHospitalName = hospitalToReceiveRequest?.name;
     } else if (bloodRequest.bloodBankId !== null) {
         bloodBankToReceiveRequest = await prisma.bloodBank.findFirst({ where: { id: bloodRequest.bloodBankId }});
-        message = `New Blood Request received from ${hospitalThatSentRequest?.name}. \nClick on the link bellow to view details`;
+        message = `New Blood Request received from ${bloodRequest.hospital?.name}. \nClick on the link bellow to view details`;
         link = `${process.env.CLIENT_URL}/dashboard/r/requests/${bloodRequest.id}`
         receivingBloodBankId = bloodBankToReceiveRequest?.id;
         receivingBloodBankName = bloodBankToReceiveRequest?.name;
