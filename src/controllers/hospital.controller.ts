@@ -347,7 +347,7 @@ export const getLabTechnitiansOverviewData = asyncWrapper(async(req: Request, re
                 hospitalId: hospitalId,
                 createdAt: {
                     gte: dateRangeStart,
-                    lte: dateRangeEnd
+                    lte: dateRangeEnd,
                 }
             }
         });
@@ -372,10 +372,6 @@ export const getLabTechnitiansOverviewData = asyncWrapper(async(req: Request, re
             }
         });
     } else if (selectedMonth === 0) {
-        // January, get data for the previous year
-        dateRangeStart = new Date(selectedYear - 1, 0, 1);
-        dateRangeEnd = new Date(selectedYear - 1, 11, 31);
-    } else {
         // Calculate the start and end dates for the selected month
         const startOfMonth = new Date(selectedYear, selectedMonth, 1);
         const endOfMonth = new Date(selectedYear, selectedMonth + 1, 0);
