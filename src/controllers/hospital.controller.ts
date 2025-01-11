@@ -371,7 +371,7 @@ export const getLabTechnitiansOverviewData = asyncWrapper(async(req: Request, re
                 }
             }
         });
-    } else if (selectedMonth === 0) {
+    } else {
         // Calculate the start and end dates for the selected month
         const startOfMonth = new Date(selectedYear, selectedMonth, 1);
         const endOfMonth = new Date(selectedYear, selectedMonth + 1, 0);
