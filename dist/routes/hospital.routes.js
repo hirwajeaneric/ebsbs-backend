@@ -1,0 +1,20 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const hospitalRouter = express_1.default.Router();
+const hospitalValidation_1 = require("../utils/hospitalValidation");
+const hospital_controller_1 = require("../controllers/hospital.controller");
+hospitalRouter.post('/add', hospitalValidation_1.validateRegisterHospital, hospital_controller_1.createHospital);
+hospitalRouter.put('/update', hospital_controller_1.updateHospital);
+hospitalRouter.delete('/delete', hospital_controller_1.deleteHospital);
+hospitalRouter.get('/list', hospital_controller_1.getAllHospitals);
+hospitalRouter.get('/inactive', hospital_controller_1.getInactiveHospitals);
+hospitalRouter.get('/active', hospital_controller_1.getActiveHospitals);
+hospitalRouter.get('/findById', hospital_controller_1.getHospital);
+hospitalRouter.post('/search', hospital_controller_1.searchHospitalsAndBloodBanksByBlood);
+hospitalRouter.get('/admin-overview', hospital_controller_1.getAdminOverviewData);
+hospitalRouter.get('/labtech-overview', hospital_controller_1.getLabTechnitiansOverviewData);
+exports.default = hospitalRouter;
