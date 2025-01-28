@@ -264,3 +264,44 @@ export const recorderOverviewData = asyncWrapper(async (req: Request, res: Respo
         },
     });
 });
+
+export const recorderReportData = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
+    const bloodBankId = req.query.id as string;
+    const from = req.query.from as string;
+    const to = req.query.to as string;
+
+    const requests = await prisma.bloodRequest.findMany({
+        where: {
+            bloodBankId: bloodBankId,
+            createdAt: {
+                gte: new Date(from),
+                lte: new Date(to),
+            },
+        },
+        include: {
+            bloodBank: true,
+            hospital: true,
+            otherHospital: true
+        }
+    });
+
+    // console.log('Requests:', requests);
+
+    // Blood Bank
+    const bloodBank = await prisma.bloodBank.findFirst({ 
+        where: { 
+            id: bloodBankId 
+        },
+        include: {
+            bloodOutTransactions: true,
+        } 
+    });
+
+    // Send response
+    res.status(200).json({
+        requests: requests,
+        bloodBank: bloodBank,
+        bloodOutTransactions: bloodBank?.bloodOutTransactions,
+    });
+    
+});

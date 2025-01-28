@@ -29,14 +29,14 @@ export const createHospital = asyncWrapper(async (req: Request, res: Response, n
         title: 'New Hospital Application',
         content: `A new hospital: ${hospital.name} has applied for access to the system.`,
     }
-    
+
     await prisma.notification.create({
         data: {
             title: notification.title,
             content: notification.content,
             sendingHospitalId: hospital.id,
             sendingHospitalName: hospital.name,
-            receivingBloodBankId: null,            
+            receivingBloodBankId: null,
             type: 'Blood Request',
             link: `${process.env.CLIENT_URL}/dashboard/a/application/${hospital.id}/edit`,
         }
@@ -51,7 +51,7 @@ export const createHospital = asyncWrapper(async (req: Request, res: Response, n
 
 export const updateHospital = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
     const existingHospitalData = await prisma.hospital.findFirst({ where: { id: req.query.id as string } });
-    
+
     if (!existingHospitalData) {
         return res.status(404).json({ message: 'Hospital not found' });
     }
@@ -99,9 +99,9 @@ export const updateHospital = asyncWrapper(async (req: Request, res: Response, n
     };
 
     const hospital = await prisma.hospital.update({ where: { id: req.query.id as string }, data: updatedData });
-    
+
     const hospitalAdmin = await prisma.hospitalAdmin.findFirst({ where: { hospitalId: hospital.id } });
-    
+
     if (hospitalAdmin && hospitalAdmin.email) {
         if (req.body.accessStatus === 'Active' && existingHospitalData.accessStatus === 'Inactive') {
             await prisma.hospitalAdmin.update({ where: { id: hospitalAdmin.id }, data: { accountStatus: 'Active' } });
@@ -297,7 +297,7 @@ export const searchHospitalsAndBloodBanksByBlood = asyncWrapper(async (req: Requ
 });
 
 
-export const getAdminOverviewData = asyncWrapper(async(req: Request, res: Response, next: NextFunction) => {
+export const getAdminOverviewData = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
     const hospitalId = req.query.id as string;
     const hospital = await prisma.hospital.findUnique({
         where: {
@@ -310,7 +310,7 @@ export const getAdminOverviewData = asyncWrapper(async(req: Request, res: Respon
             bloodInTransactions: true
         }
     });
-    
+
     if (!hospital) {
         return res.status(404).json({ message: "Hospital not found" });
     }
@@ -318,17 +318,16 @@ export const getAdminOverviewData = asyncWrapper(async(req: Request, res: Respon
     res.status(200).json({ message: "Success", hospital });
 })
 
-export const getLabTechnitiansOverviewData = asyncWrapper(async(req: Request, res: Response, next: NextFunction) => {
+export const getLabTechnitiansOverviewData = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
     const hospitalId = req.query.id as string;
 
     // Extract filters from the query parameters
     const { month, year } = req.query;
-
     // Set default values for the current month and year
     const now = new Date();
     const selectedMonth = month ? Number(month) : undefined; // JS months are 0-based
     const selectedYear = year ? Number(year) : now.getFullYear();
-    
+
     let bloodInTransactions;
     let receivedBloodRequests;
     let sentBloodRequests;
@@ -353,12 +352,12 @@ export const getLabTechnitiansOverviewData = asyncWrapper(async(req: Request, re
         });
 
         receivedBloodRequests = await prisma.bloodRequest.findMany({
-            where: { 
-                idOfOtherHospital: hospitalId, 
-                createdAt: { 
-                    gte: dateRangeStart, 
-                    lte: dateRangeEnd 
-                } 
+            where: {
+                idOfOtherHospital: hospitalId,
+                createdAt: {
+                    gte: dateRangeStart,
+                    lte: dateRangeEnd
+                }
             }
         });
 
@@ -389,12 +388,12 @@ export const getLabTechnitiansOverviewData = asyncWrapper(async(req: Request, re
         });
 
         receivedBloodRequests = await prisma.bloodRequest.findMany({
-            where: { 
-                idOfOtherHospital: hospitalId, 
-                createdAt: { 
-                    gte: dateRangeStart, 
-                    lte: dateRangeEnd 
-                } 
+            where: {
+                idOfOtherHospital: hospitalId,
+                createdAt: {
+                    gte: dateRangeStart,
+                    lte: dateRangeEnd
+                }
             }
         });
 
@@ -418,20 +417,78 @@ export const getLabTechnitiansOverviewData = asyncWrapper(async(req: Request, re
             workers: true,
         }
     });
-    
+
     if (!hospital) {
         return res.status(404).json({ message: "Hospital not found" });
     }
 
-    res.status(200).json({ 
-        message: "Success", 
+    res.status(200).json({
+        message: "Success",
         hospital,
-        bloodInTransactions, 
+        bloodInTransactions,
         receivedBloodRequests,
         sentBloodRequests,
         filters: {
-            month: selectedMonth !== undefined ? selectedMonth  : undefined, // Convert 0-based month back to 1-based 
-            year: selectedYear 
-        } 
-    });  
-})
+            month: selectedMonth !== undefined ? selectedMonth : undefined, // Convert 0-based month back to 1-based 
+            year: selectedYear
+        }
+    });
+});
+
+export const labTechnicianReportData = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
+    const hospitalId = req.query.id as string;
+    const from = req.query.from as string;
+    const to = req.query.to as string;
+
+    const bloodInTransactions = await prisma.bloodInTransaction.findMany({
+        where: {
+            hospitalId: hospitalId,
+            createdAt: {
+                gte: new Date(from),
+                lte: new Date(to)
+            }
+        }
+    });
+
+    const receivedBloodRequests = await prisma.bloodRequest.findMany({
+        where: {
+            idOfOtherHospital: hospitalId,
+            createdAt: {
+                gte: new Date(from),
+                lte: new Date(to)
+            }
+        }
+    });
+
+    const sentBloodRequests = await prisma.bloodRequest.findMany({
+        where: {
+            hospitalId: hospitalId,
+            createdAt: {
+                gte: new Date(from),
+                lte: new Date(to)
+            }
+        }
+    });
+
+    const hospital = await prisma.hospital.findUnique({
+        where: {
+            id: hospitalId
+        },
+        include: {
+            notifications: true,
+            workers: true,
+        }
+    });
+
+    if (!hospital) {
+        return res.status(404).json({ message: "Hospital not found" });
+    }
+
+    res.status(200).json({
+        message: "Success",
+        hospital,
+        bloodInTransactions,
+        receivedBloodRequests,
+        sentBloodRequests,
+    });
+});

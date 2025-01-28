@@ -71,6 +71,9 @@ export const hospitalSignIn = asyncWrapper(async (req: Request, res: Response, n
         return res.status(401).json({ message: 'Account is currently not active' }); 
     }
     const hospital = await prisma.hospital.findUnique({ where: { id: existingUser.hospitalId } });
+    if (hospital?.accessStatus === "Inactive") {
+        return res.status(401).json({ message: 'Access Denied! Hospital is currently not active' });
+    }
 
     const token = await GenerateToken({
         _id: existingUser.id,
@@ -209,7 +212,7 @@ export const addNewUser = asyncWrapper(async (req: Request, res: Response, next:
     } else if (user.role === "Blood Bank Recorder") {
         emailBody = `Dear ${user.firstName} ${user.lastName},\n\nYour account has been created successfully. \n\nHere are your account credentials: \n\nEmail: ${user.email}\nClick this link to finish setting up your account: ${process.env.CLIENT_URL}/bauth/reset-password/${token}/${user.id}\n\nBest Regards,\nAdmin`;
     }
-
+    console.log(emailBody);
     await sendEmail(req.body.email, 'Your account credentials', emailBody);
     res.status(201).json({ message: 'Account created successfully' });
 });
